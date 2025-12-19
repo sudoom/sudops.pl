@@ -6,80 +6,58 @@ import { buttonVariants } from '@/components/ui/button'
 import { SITE } from '@/consts'
 import Layout from '@/layouts/Layout.astro'
 import { getRecentPosts } from '@/lib/data-utils'
+import TechStack from '@/components/TechStack.astro'
+import FeaturedProjects from '@/components/FeaturedProjects.astro'
 
 const blog = await getRecentPosts(SITE.featuredPostCount)
 ---
 
 <Layout class="max-w-3xl">
   <PageHead slot="head" title="Home" />
-  <section class="rounded-lg border">
-    <div class="flex flex-col space-y-1.5 p-6">
-      <h3 class="text-3xl leading-none font-medium">er·u·dite</h3>
-      <p class="text-muted-foreground text-sm">
-        /ˈer(y)əˌdīt/ &bull; <span class="font-medium">adjective</span>
-      </p>
+  
+  <section class="flex flex-col space-y-4 mb-12">
+    <div class="space-y-2">
+       <h1 class="text-3xl font-bold tracking-tight">John Doe</h1>
+       <p class="text-xl text-muted-foreground">Software Engineer & Creative Technologist</p>
     </div>
-    <div class="p-6 pt-0">
-      <p class="text-muted-foreground mb-2 text-sm">
-        astro-erudite is an opinionated, unstyled static blogging template built
-        with <Link
-          href="https://astro.build"
-          class="text-foreground"
-          external
-          underline>Astro</Link
-        >, <Link
-          href="https://tailwindcss.com"
-          class="text-foreground"
-          external
-          underline>Tailwind</Link
-        >, and <Link
-          href="https://ui.shadcn.com"
-          class="text-foreground"
-          external
-          underline>shadcn/ui</Link
-        >. Extraordinarily loosely based on the <Link
-          href="https://astro-micro.vercel.app/"
-          class="text-foreground"
-          external
-          underline>Astro Micro</Link
-        > theme.
-      </p>
-      <p class="text-muted-foreground text-sm">
-        To use this template, check out the <Link
-          href="https://github.com/jktrn/astro-erudite"
-          class="text-foreground"
-          underline
-          external>GitHub</Link
-        > repository. To learn more about why this template exists, read this blog
-        post: <Link
-          href="/blog/the-state-of-static-blogs"
-          class="text-foreground"
-          underline>The State of Static Blogs in 2024</Link
-        >.
-      </p>
+    <p class="max-w-prose text-muted-foreground leading-relaxed">
+      I build accessible, pixel-perfect, and performant web experiences. 
+      Passionate about <strong>Open Source</strong>, <strong>Distributed Systems</strong>, and creating digital art.
+      Currently navigating the deep seas of code.
+    </p>
+    <div class="flex gap-4">
+        <a href="/resume" class={buttonVariants({ variant: 'default' })}>View Resume</a>
+        <a href="/about" class={buttonVariants({ variant: 'outline' })}>More about me</a>
     </div>
   </section>
-  <section class="flex flex-col gap-y-4">
-    <h2 class="text-2xl font-medium">Latest posts</h2>
-    <ul class="flex flex-col gap-y-4">
-      {
-        blog.map((post) => (
-          <li>
-            <BlogCard entry={post} />
-          </li>
-        ))
-      }
-    </ul>
-    <div class="flex justify-center">
-      <Link
-        href="/blog"
-        class={buttonVariants({ variant: 'ghost' }) + ' group'}
-      >
-        See all posts <span
-          class="ml-1.5 transition-transform group-hover:translate-x-1"
-          >&rarr;</span
-        >
-      </Link>
-    </div>
-  </section>
+  
+  <div class="flex flex-col gap-16">
+      <TechStack />
+      
+      <FeaturedProjects />
+     
+      <section class="flex flex-col gap-y-4">
+        <h2 class="text-xl font-medium">Latest Posts</h2>
+        <ul class="flex flex-col gap-y-4">
+          {
+            blog.map((post) => (
+              <li>
+                <BlogCard entry={post} />
+              </li>
+            ))
+          }
+        </ul>
+        <div class="flex justify-center">
+          <Link
+            href="/blog"
+            class={buttonVariants({ variant: 'ghost' }) + ' group'}
+          >
+            See all posts <span
+              class="ml-1.5 transition-transform group-hover:translate-x-1"
+              >&rarr;</span
+            >
+          </Link>
+        </div>
+      </section>
+  </div>
 </Layout>

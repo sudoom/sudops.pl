@@ -43,27 +43,29 @@
 }
 
 :root {
-  --background: oklch(1 0 0);
-  --foreground: oklch(0.145 0 0);
-  --primary: oklch(0.205 0 0);
-  --primary-foreground: oklch(0.985 0 0);
-  --muted: oklch(0.97 0 0);
-  --muted-foreground: oklch(0.556 0 0);
-  --destructive: oklch(0.577 0.245 27.325);
-  --border: oklch(0.922 0 0);
-  --ring: oklch(0.708 0 0);
+  /* Ayvazovskyi Day (Optional Light Mode) */
+  --background: #f0f9ff;
+  --foreground: #0b1026;
+  --primary: #0e7490;
+  --primary-foreground: #ffffff;
+  --muted: #e0f2fe;
+  --muted-foreground: #475569;
+  --destructive: #ef4444;
+  --border: #bae6fd;
+  --ring: #0ea5e9;
 }
 
 [data-theme='dark'] {
-  --background: oklch(0.145 0 0);
-  --foreground: oklch(0.985 0 0);
-  --primary: oklch(0.922 0 0);
-  --primary-foreground: oklch(0.205 0 0);
-  --muted: oklch(0.269 0 0);
-  --muted-foreground: oklch(0.708 0 0);
-  --destructive: oklch(0.704 0.191 22.216);
-  --border: oklch(1 0 0 / 10%);
-  --ring: oklch(0.556 0 0);
+  /* Ayvazovskyi Night (Deep Sea Blue) */
+  --background: #0b1026;
+  --foreground: #e2e8f0;
+  --primary: #4fd6be;
+  --primary-foreground: #0b1026;
+  --muted: #1e293b; 
+  --muted-foreground: #94a3b8;
+  --destructive: #7f1d1d;
+  --border: #1e293b;
+  --ring: #4fd6be;
 }
 
 @layer base {

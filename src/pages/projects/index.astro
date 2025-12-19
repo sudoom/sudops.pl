@@ -1,0 +1,36 @@
+---
+import ProjectCard from '@/components/ProjectCard.astro'
+import { buttonVariants } from '@/components/ui/button'
+import PageHead from '@/components/PageHead.astro'
+import Layout from '@/layouts/Layout.astro'
+import { getCollection } from 'astro:content'
+
+const projects = await getCollection('projects')
+projects.sort(
+  (a, b) =>
+    (b.data.startDate?.getTime() ?? 0) - (a.data.startDate?.getTime() ?? 0),
+)
+
+const allTags = [...new Set(projects.flatMap((project) => project.data.tags))]
+---
+
+<Layout class="max-w-3xl">
+  <PageHead slot="head" title="Projects" description="A collection of my technical projects and experiments." />
+  
+  <h1 class="text-3xl font-medium mb-6">Projects</h1>
+
+  <div class="mb-8 flex flex-wrap gap-2">
+     {/* Simple tag list for visual flair, maybe filterable in v2 */}
+     {allTags.map(tag => (
+         <span class="px-2 py-1 text-xs border rounded-full text-muted-foreground bg-muted/30">{tag}</span>
+     ))}
+  </div>
+
+  <div class="grid grid-cols-1 gap-4">
+    {
+      projects.map((project) => (
+        <ProjectCard project={project} />
+      ))
+    }
+  </div>
+</Layout>

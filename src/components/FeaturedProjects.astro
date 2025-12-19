@@ -1,0 +1,25 @@
+---
+import { getCollection } from 'astro:content'
+import ProjectCard from '@/components/ProjectCard.astro'
+import { buttonVariants } from '@/components/ui/button'
+
+const projects = await getCollection('projects')
+// Sort by date and take top 2
+const featured = projects
+    .sort((a, b) => (b.data.startDate?.getTime() ?? 0) - (a.data.startDate?.getTime() ?? 0))
+    .slice(0, 2)
+---
+
+<section class="flex flex-col gap-y-4">
+    <h2 class="text-xl font-medium">Featured Projects</h2>
+    <div class="grid grid-cols-1 gap-4">
+        {featured.map(project => (
+            <ProjectCard project={project} />
+        ))}
+    </div>
+    <div class="flex justify-center mt-2">
+        <a href="/projects" class={buttonVariants({ variant: 'ghost' }) + ' group'}>
+            See all projects <span class="ml-1.5 transition-transform group-hover:translate-x-1">&rarr;</span>
+        </a>
+    </div>
+</section>
