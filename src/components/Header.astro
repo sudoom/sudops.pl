@@ -1,10 +1,9 @@
 ---
 import Link from '@/components/Link.astro'
 import ThemeToggle from '@/components/ThemeToggle.astro'
-import { NAV_LINKS, SITE, SOCIAL_LINKS } from '@/consts'
+import { NAV_LINKS, SITE } from '@/consts'
 import { Image } from 'astro:assets'
-import logo from '../../public/favicon.svg'
-import SocialIcons from './SocialIcons.astro'
+import logo from '../../public/static/logo.svg'
 ---
 
 <div>
@@ -12,14 +11,14 @@ import SocialIcons from './SocialIcons.astro'
     class="mx-auto flex max-w-3xl items-center justify-between gap-4 px-4 py-3"
   >
     <Link href="/" class="flex shrink-0 items-center justify-center gap-3">
-      <Image src={logo} alt="Logo" class="size-6 sm:size-8" />
+      <Image src={logo} alt="Logo" class="size-5 sm:size-6" />
       <span
         class="hidden h-full text-lg leading-none font-medium min-[400px]:block"
         >{SITE.title}</span
       >
     </Link>
     <div class="flex items-center gap-4">
-      <nav class="hidden items-center gap-4 text-sm sm:flex sm:gap-6">
+      <nav class="flex items-center gap-4 text-sm sm:gap-6">
         {
           NAV_LINKS.map((item) => (
             <Link
@@ -31,10 +30,7 @@ import SocialIcons from './SocialIcons.astro'
           ))
         }
       </nav>
-      <div class="flex items-center gap-2">
-        <SocialIcons links={SOCIAL_LINKS} />
-        <ThemeToggle transition:persist />
-      </div>
+      <ThemeToggle transition:persist />
     </div>
   </div>
 </div>
