@@ -39,10 +39,6 @@ export const SOCIAL_LINKS: SocialLink[] = [
     href: 'mailto:root@sudoom.pl',
     label: 'Email',
   },
-  {
-    href: '/rss.xml',
-    label: 'RSS',
-  },
 ]
 
 export const ICON_MAP: IconMap = {
