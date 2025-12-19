@@ -17,24 +17,19 @@ const blog = await getRecentPosts(SITE.featuredPostCount)
   
   <section class="flex flex-col space-y-4 mb-12">
     <div class="space-y-2">
-       <h1 class="text-3xl font-bold tracking-tight">John Doe</h1>
-       <p class="text-xl text-muted-foreground">Software Engineer & Creative Technologist</p>
+       <h1 class="text-3xl font-bold tracking-tight">Vadzim Dziadziulia</h1>
+       <p class="text-xl text-muted-foreground">Infrastructure & DevOps Engineer</p>
     </div>
     <p class="max-w-prose text-muted-foreground leading-relaxed">
-      I build accessible, pixel-perfect, and performant web experiences. 
-      Passionate about <strong>Open Source</strong>, <strong>Distributed Systems</strong>, and creating digital art.
-      Currently navigating the deep seas of code.
+      Currently navigating the deep seas of <strong>Kubernetes Infrastructure</strong>.
     </p>
     <div class="flex gap-4">
-        <a href="/about" class={buttonVariants({ variant: 'default' })}>View Resume</a>
-        <a href="/about" class={buttonVariants({ variant: 'outline' })}>More about me</a>
+        <a href="/resume.pdf" class={buttonVariants({ variant: 'default' })}>Download Resume</a>
     </div>
   </section>
   
   <div class="flex flex-col gap-16">
       <TechStack />
-      
-      <FeaturedProjects />
      
       <section class="flex flex-col gap-y-4">
         <h2 class="text-xl font-medium">Latest Posts</h2>
