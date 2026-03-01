@@ -21,6 +21,7 @@ pnpm-debug.log*
 # IDE
 .idea/
 .vscode/
+.claude/
 
 # Misc
 teaser.pptx

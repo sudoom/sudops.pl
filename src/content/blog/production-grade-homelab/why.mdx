@@ -4,7 +4,10 @@ description: 'Hardware first, purpose second — if a purpose ever shows up at a
 date: 2026-03-01
 tags: ['homelab', 'okd', 'kubernetes', 'infrastructure']
 authors: ['vd']
+order: 1
 ---
+
+import Callout from '@/components/Callout.astro'
 
 Most homelab content starts the same way: "I just picked up this server on eBay, let me show you what I'm running on it." Hardware first, purpose second — if a purpose ever shows up at all.
 
@@ -46,7 +49,9 @@ I went the other direction — hyperconverged infrastructure. Multiple small for
 
 Why? Because the monolithic approach teaches you virtualization administration. The hyperconverged approach teaches you distributed systems. With HCI, storage is distributed across nodes via Ceph, networking requires real segmentation, and failure domains are physical machines — not VMs on the same host pretending to be independent. When a node goes down in an HCI cluster, you learn what your replication strategy actually does. When a VM goes down on a single hypervisor, you learn how to click "restart."
 
-The trade-off is complexity. More nodes means more hardware to buy, more cables to run, more things that can fail. But that complexity is the point — it mirrors what you'd encounter in a real production environment, at a scale you can actually wrap your head around.
+<Callout title="The trade-off" variant="warning">
+  More nodes means more hardware to buy, more cables to run, more things that can fail. But that complexity is the point — it mirrors what you'd encounter in a real production environment, at a scale you can actually wrap your head around.
+</Callout>
 
 ## Why OKD?
 
@@ -56,7 +61,9 @@ I work with OpenShift on a daily basis. I know the operator model, the upgrade l
 
 OKD is the upstream community distribution of OpenShift. It includes the operator framework, integrated monitoring and logging, built-in OAuth, image registry, and the foundation for OKD Virtualization (KubeVirt). It runs on SCOS (CentOS Stream CoreOS), uses the same operator lifecycle as OpenShift, and gives me access to the same patterns and tooling that run in production environments — without the licensing cost that makes OpenShift impractical for a homelab.
 
-For storage, I'll be running Rook-Ceph rather than OpenShift Data Foundation. ODF is a Red Hat product that requires a subscription and isn't part of the OKD ecosystem. Rook-Ceph is the upstream operator that ODF is built on — same Ceph underneath, same operator model, no licensing strings attached. It integrates cleanly with OKD and gives me the same tiered storage capabilities I need.
+<Callout title="Why Rook-Ceph instead of ODF?" variant="tip">
+  OpenShift Data Foundation (ODF) is a Red Hat product that requires a subscription and isn't part of the OKD ecosystem. Rook-Ceph is the upstream operator that ODF is built on — same Ceph underneath, same operator model, no licensing strings attached. It integrates cleanly with OKD and gives the same tiered storage capabilities.
+</Callout>
 
 The trade-off is that OKD is community-supported, not Red Hat-supported. For a learning environment, that's not a trade-off — it's a feature. When something breaks, you fix it yourself. That's the whole point.
 
@@ -64,7 +71,9 @@ The trade-off is that OKD is community-supported, not Red Hat-supported. For a l
 
 Here's the idea that shapes this entire series:
 
-> **You cannot implement what you haven't designed, and you cannot design without a clear goal.**
+<Callout title="Core principle" variant="important">
+  You cannot implement what you haven't designed, and you cannot design without a clear goal.
+</Callout>
 
 This sounds obvious. It isn't. The homelab community is full of projects that started with an impulse purchase and evolved into tangled infrastructure held together by forum posts and optimism. I've been there. The OptiPlex 7050 wasn't part of any plan — it was available, so I bought it, and then figured out what to do with it.
 
@@ -76,14 +85,16 @@ That sequence isn't just project management methodology applied to a hobby. It's
 
 This series follows the actual decision sequence of the project:
 
-1. **Why** — You're reading it. The motivation, the limitations, the goals.
-2. **Design** — Translating those goals into concrete specifications. How many nodes, how much RAM, what kind of storage, and why.
-3. **Network Architecture** — VLAN segmentation, 10 Gbps storage networking, MikroTik configuration, and why the network is the foundation everything else depends on.
-4. **Storage Architecture** — Tiered Ceph with fast NVMe and slow HDD pools, replication strategies, and how Rook-Ceph manages it all.
-5. **Bill of Materials** — Real pricing from the Polish used market. What I chose, what I rejected, and the compatibility surprises that saved me from expensive mistakes.
-6. **Validation** — Single-node testing before committing to a full cluster. BIOS configuration, SCOS boot testing, NIC compatibility, and network throughput verification.
+<Callout title="Series roadmap" variant="summary">
+  1. **Why** — You're reading it. The motivation, the limitations, the goals.
+  2. **Design** — Translating those goals into concrete specifications. How many nodes, how much RAM, what kind of storage, and why.
+  3. **Network Architecture** — VLAN segmentation, 10 Gbps storage networking, MikroTik configuration, and why the network is the foundation everything else depends on.
+  4. **Storage Architecture** — Tiered Ceph with fast NVMe and slow HDD pools, replication strategies, and how Rook-Ceph manages it all.
+  5. **Bill of Materials** — Real pricing from the Polish used market. What I chose, what I rejected, and the compatibility surprises that saved me from expensive mistakes.
+  6. **Validation** — Single-node testing before committing to a full cluster. BIOS configuration, SCOS boot testing, NIC compatibility, and network throughput verification.
 
-More posts will follow as the project evolves — deployment, day-2 operations, workload onboarding, and whatever breaks along the way. The series grows with the infrastructure.
+  More posts will follow as the project evolves — deployment, day-2 operations, workload onboarding, and whatever breaks along the way. The series grows with the infrastructure.
+</Callout>
 
 ## Who this is for
 

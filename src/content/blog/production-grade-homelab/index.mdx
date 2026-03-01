@@ -1,0 +1,36 @@
+---
+title: 'Production-Grade Homelab'
+description: 'Building a bare-metal OKD cluster from the ground up — from goals and design through network architecture, storage, and deployment.'
+date: 2026-03-01
+tags: ['homelab', 'okd', 'kubernetes', 'infrastructure']
+authors: ['vd']
+---
+
+import Callout from '@/components/Callout.astro'
+
+This series documents the full process of building a production-grade bare-metal OKD cluster as a homelab — not as a weekend project, but as a deliberate engineering exercise. Every decision is traced from a clear goal through design, architecture, and implementation.
+
+<Callout title="Core principle" variant="important">
+  You cannot implement what you haven't designed, and you cannot design without a clear goal.
+</Callout>
+
+## Series roadmap
+
+<Callout title="What's covered" variant="summary">
+  1. **Why** — The motivation, the limitations of a single-node setup, and the goals that drive every decision in this project.
+  2. **Design** — Translating goals into concrete specifications. How many nodes, how much RAM, what kind of storage, and why.
+  3. **Network Architecture** — VLAN segmentation, 10 Gbps storage networking, MikroTik configuration, and why the network is the foundation everything else depends on.
+  4. **Storage Architecture** — Tiered Ceph with fast NVMe and slow HDD pools, replication strategies, and how Rook-Ceph manages it all.
+  5. **Bill of Materials** — Real pricing from the Polish used market. What I chose, what I rejected, and the compatibility surprises that saved me from expensive mistakes.
+  6. **Validation** — Single-node testing before committing to a full cluster. BIOS configuration, SCOS boot testing, NIC compatibility, and network throughput verification.
+
+  More posts will follow as the project evolves — deployment, day-2 operations, workload onboarding, and whatever breaks along the way.
+</Callout>
+
+<Callout title="Who this is for" variant="note">
+  This series is for engineers who want to understand how a bare-metal Kubernetes platform comes together — from the physical layer to the pod scheduler — and want to see the decision-making process, not just the final result.
+
+  Whether you're planning your own homelab, studying for a CKA/CKS certification, or just curious about what goes into bare-metal OKD, there should be something useful here.
+</Callout>
+
+Start with the first post to understand the *why* behind every choice that follows.
