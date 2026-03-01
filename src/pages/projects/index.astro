@@ -25,11 +25,15 @@ const allTags = [...new Set(projects.flatMap((project) => project.data.tags))]
      ))}
   </div>
 
-  <div class="grid grid-cols-1 gap-4">
-    {
-      projects.map((project) => (
-        <ProjectCard project={project} />
-      ))
-    }
-  </div>
+  {projects.length > 0 ? (
+    <div class="grid grid-cols-1 gap-4">
+      {
+        projects.map((project) => (
+          <ProjectCard project={project} />
+        ))
+      }
+    </div>
+  ) : (
+    <p class="text-muted-foreground">No projects yet. Check back soon.</p>
+  )}
 </Layout>
