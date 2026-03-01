@@ -27,6 +27,8 @@ Then there's the upgrade path — or rather, the lack of one. Vanilla Kubernetes
 
 The more I worked with it, the clearer the limitations became. Not limitations of Kubernetes itself, but limitations of what a single node can teach you. You can read about etcd consensus, pod anti-affinity, and storage replication all day, but until you've watched a node drop out of a cluster and seen your workloads reschedule onto surviving nodes, you haven't really understood what those concepts mean.
 
+![Current single-node setup vs target OKD cluster](./post-01-current-vs-goal.png)
+
 ## What I actually need
 
 So what does "production-grade" mean for a homelab? It doesn't mean enterprise scale. It means enterprise *discipline*. Specifically, I need:
@@ -45,9 +47,11 @@ So what does "production-grade" mean for a homelab? It doesn't mean enterprise s
 
 There are two ways to approach this kind of build. The monolithic route: buy a beefy 1U or 2U rack server with 128 GB of RAM, spin up a hypervisor, and carve out virtual machines for everything. It's simpler to manage, easier to cool, and gives you one box to worry about. Plenty of homelabs run this way.
 
-I went the other direction — hyperconverged infrastructure. Multiple small form-factor nodes, each carrying both compute and storage, working together as a cluster. Three Dell OptiPlex 5090 SFFs in Phase 1, expanding to five in Phase 2.
+I went the other direction — hyperconverged infrastructure. Multiple small form-factor nodes, each carrying both compute and storage, working together as a cluster. Three SFFs in Phase 1, expanding to five in Phase 2.
 
 Why? Because the monolithic approach teaches you virtualization administration. The hyperconverged approach teaches you distributed systems. With HCI, storage is distributed across nodes via Ceph, networking requires real segmentation, and failure domains are physical machines — not VMs on the same host pretending to be independent. When a node goes down in an HCI cluster, you learn what your replication strategy actually does. When a VM goes down on a single hypervisor, you learn how to click "restart."
+
+![Monolithic single-server approach vs hyperconverged multi-node cluster](./post-01-monolithic-vs-hci.png)
 
 <Callout title="The trade-off" variant="warning">
   More nodes means more hardware to buy, more cables to run, more things that can fail. But that complexity is the point — it mirrors what you'd encounter in a real production environment, at a scale you can actually wrap your head around.
@@ -88,7 +92,7 @@ This series follows the actual decision sequence of the project:
 <Callout title="Series roadmap" variant="summary">
   1. **Why** — You're reading it. The motivation, the limitations, the goals.
   2. **Design** — Translating those goals into concrete specifications. How many nodes, how much RAM, what kind of storage, and why.
-  3. **Network Architecture** — VLAN segmentation, 10 Gbps storage networking, MikroTik configuration, and why the network is the foundation everything else depends on.
+  3. **Network Architecture** — VLAN segmentation, 10 Gbps storage networking and why the network is the foundation everything else depends on.
   4. **Storage Architecture** — Tiered Ceph with fast NVMe and slow HDD pools, replication strategies, and how Rook-Ceph manages it all.
   5. **Bill of Materials** — Real pricing from the Polish used market. What I chose, what I rejected, and the compatibility surprises that saved me from expensive mistakes.
   6. **Validation** — Single-node testing before committing to a full cluster. BIOS configuration, SCOS boot testing, NIC compatibility, and network throughput verification.
