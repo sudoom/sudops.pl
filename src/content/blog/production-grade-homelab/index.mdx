@@ -8,7 +8,7 @@ authors: ['vd']
 
 import Callout from '@/components/Callout.astro'
 
-This series documents the full process of building a production-grade bare-metal OKD cluster as a homelab — not as a weekend project, but as a deliberate engineering exercise. Every decision is traced from a clear goal through design, architecture, and implementation.
+This series documents building a production-grade bare-metal OKD cluster as a homelab — not a weekend project, but a deliberate engineering exercise. Every decision traces from a clear goal through design, architecture, and implementation.
 
 <Callout title="Core principle" variant="important">
   You cannot implement what you haven't designed, and you cannot design without a clear goal.
@@ -17,20 +17,20 @@ This series documents the full process of building a production-grade bare-metal
 ## Series roadmap
 
 <Callout title="What's covered" variant="summary">
-  1. **Why** — The motivation, the limitations of a single-node setup, and the goals that drive every decision in this project.
-  2. **Design** — Translating goals into concrete specifications. How many nodes, how much RAM, what kind of storage, and why.
-  3. **Network Architecture** — VLAN segmentation, 10 Gbps storage networking, MikroTik configuration, and why the network is the foundation everything else depends on.
-  4. **Storage Architecture** — Tiered Ceph with fast NVMe and slow HDD pools, replication strategies, and how Rook-Ceph manages it all.
-  5. **Bill of Materials** — Real pricing from the Polish used market. What I chose, what I rejected, and the compatibility surprises that saved me from expensive mistakes.
-  6. **Validation** — Single-node testing before committing to a full cluster. BIOS configuration, SCOS boot testing, NIC compatibility, and network throughput verification.
+  1. **Why** — The motivation, limitations of a single-node setup, and the goals driving every decision.
+  2. **Design** — Translating goals into specs. How many nodes, how much RAM, what storage, why.
+  3. **Network Architecture** — VLANs, 10 Gbps storage networking, MikroTik config, and why the network is the foundation.
+  4. **Storage Architecture** — Tiered Ceph with fast NVMe and slow HDD pools, replication strategies, Rook-Ceph.
+  5. **Bill of Materials** — Real pricing from the Polish used market. What I chose, what I rejected, and compatibility surprises.
+  6. **Validation** — Single-node testing before full commitment. BIOS config, SCOS boot, NIC compatibility, throughput verification.
 
-  More posts will follow as the project evolves — deployment, day-2 operations, workload onboarding, and whatever breaks along the way.
+  More posts as the project evolves — deployment, day-2 ops, workload onboarding.
 </Callout>
 
 <Callout title="Who this is for" variant="note">
-  This series is for engineers who want to understand how a bare-metal Kubernetes platform comes together — from the physical layer to the pod scheduler — and want to see the decision-making process, not just the final result.
+  This isn't a weekend Plex project. It's for engineers who want to understand how bare-metal Kubernetes comes together — from physical layer to pod scheduler — and want to see the decision-making process, not just the end result.
 
-  Whether you're planning your own homelab, studying for a CKA/CKS certification, or just curious about what goes into bare-metal OKD, there should be something useful here.
+  Planning your own homelab, studying for CKA/CKS, or just curious about bare-metal OKD — there should be something useful here.
 </Callout>
 
 Start with the first post to understand the *why* behind every choice that follows.
