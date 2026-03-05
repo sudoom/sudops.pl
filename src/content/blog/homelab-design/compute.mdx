@@ -97,9 +97,9 @@ Phase 2 doesn't change the model — still three FDs. Nodes 7 and 8 join FD-A an
   - **Chassis make and model** — design defines requirements. Multiple vendors meet this. Choice depends on market availability and compatibility.
   - **HDD model and capacity** — need large HDDs for slow Ceph tier. Depends on pricing and availability.
   - **DDR4 frequency** — various speeds work. Difference between DDR4-2400 and DDR4-3200 is negligible for this workload.
-  - **NIC model** — need dual-port SFP+. Intel X710, Mellanox ConnectX-3, others. Procurement and compatibility decision.
+  - **NIC model** — The design requires a 10 Gbps NIC in each node. Connector type (SFP+, RJ45 10GbE), port count, and specific model are procurement decisions for the BOM post.
 
-  These aren't gaps — they're the boundary between design and procurement. The design says "64 GB DDR4, 4 DIMM slots, dual-port SFP+." The BOM says which exact module, from where, at what price.
+  These aren't gaps — they're the boundary between design and procurement. The design says "64 GB DDR4, 4 DIMM slots, 10 Gbps NIC." The BOM says which exact module, from where, at what price.
 </Callout>
 
 ## Summary
@@ -110,7 +110,7 @@ Phase 2 doesn't change the model — still three FDs. Nodes 7 and 8 join FD-A an
   - 8 cores / 16 threads per node
   - 64 GB RAM (2 x 32 GB), upgradeable to 128 GB (4 DIMM slots)
   - Three storage tiers: boot SSD, fast NVMe (Ceph), slow HDD (Ceph)
-  - Dual-port 10 Gbps SFP+ for storage networking
+  - 10 Gbps interface for storage networking
   - 1 Gbps RJ45 for management
   - SFF form factor — power, noise, cost
   - Three failure domains in both phases
