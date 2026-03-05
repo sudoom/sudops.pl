@@ -1,0 +1,30 @@
+---
+title: 'Designing a 5-Node OKD Cluster'
+description: 'From requirements to specifications — compute sizing, network architecture, and storage design for a bare-metal homelab.'
+date: 2026-03-02
+tags: ['homelab', 'okd', 'kubernetes', 'infrastructure']
+authors: ['vd']
+---
+
+import Callout from '@/components/Callout.astro'
+
+The [previous post](/blog/homelab-why) laid out the goals: production-grade bare-metal OKD, distributed storage, VLAN segmentation, virtualization. Now we turn those into concrete specs.
+
+No part numbers, no pricing, no vendor links. Requirements become decisions, decisions get justified. The BOM comes later.
+
+<Callout title="Design constraints" variant="important">
+  - **Budget.** Every component needs to justify its cost — not cheapest, but right for the purpose.
+  - **Physical space.** 19-inch rack, not a server room. Reasonable footprint, no jet engine noise.
+  - **Power.** Five nodes at 24/7. Desktop-class CPUs at 65W vs server-class Xeons at 150W+ — the math adds up. In Europe, electricity isn't cheap.
+  - **Used market.** The Polish used market (Allegro.pl) has plenty of ex-corporate machines. What's actually available shapes every hardware choice.
+</Callout>
+
+The design breaks down into three areas, each covered in its own subpost:
+
+<Callout title="Design areas" variant="summary">
+  1. **Compute** — How many nodes, deployment phases, CPU and memory sizing, chassis requirements, failure domains, and node roles.
+  2. **Network** — VLAN segmentation, 10 Gbps storage networking, and why the network is the foundation everything else depends on. *(coming soon)*
+  3. **Storage** — Tiered Ceph with fast NVMe and slow HDD pools, replication strategies, and Rook-Ceph. *(coming soon)*
+</Callout>
+
+Start with the compute design to understand the physical foundation of the cluster.

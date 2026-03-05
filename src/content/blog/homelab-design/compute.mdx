@@ -1,28 +1,13 @@
 ---
-title: 'Designing a 5-Node OKD Cluster: From Requirements to Specifications'
-description: 'Turning homelab goals into concrete specifications — node count, compute sizing, storage tiers, failure domains, and the boundary between design and procurement.'
+title: 'Compute Design: Nodes, Sizing, and Failure Domains'
+description: 'Node count, deployment phases, CPU and memory sizing, chassis requirements, and failure domain layout for a bare-metal OKD cluster.'
 date: 2026-03-02
 tags: ['homelab', 'okd', 'kubernetes', 'infrastructure']
 authors: ['vd']
-order: 2
+order: 1
 ---
 
 import Callout from '@/components/Callout.astro'
-
-[Previous post](/blog/production-grade-homelab/why) laid out the goals: production-grade bare-metal OKD, distributed storage, VLAN segmentation, virtualization. Now we turn those into concrete specs.
-
-This is the design post. No part numbers, no pricing, no vendor links. Requirements become decisions, decisions get justified. The BOM comes later.
-
-## Starting with constraints
-
-Every design starts with constraints. Ignoring them leads to solutions that look great on paper and blow up in practice.
-
-<Callout title="Design constraints" variant="important">
-  - **Budget.** Every component needs to justify its cost — not cheapest, but right for the purpose.
-  - **Physical space.** 19-inch rack, not a server room. Reasonable footprint, no jet engine noise.
-  - **Power.** Five nodes at 24/7. Desktop-class CPUs at 65W vs server-class Xeons at 150W+ — the math adds up. In Europe, electricity isn't cheap.
-  - **Used market.** The Polish used market (Allegro.pl) has plenty of ex-corporate machines. What's actually available shapes every hardware choice.
-</Callout>
 
 ## How many nodes?
 
@@ -119,7 +104,7 @@ Phase 2 doesn't change the model — still three FDs. Nodes 7 and 8 join FD-A an
 
 ## Summary
 
-<Callout title="Cluster design at a glance" variant="summary">
+<Callout title="Compute design at a glance" variant="summary">
   - **Phase 0 (SNO)** validates hardware → **Phase 1 (3 nodes)** validates architecture → **Phase 2 (5 nodes)** scales
   - Combined control plane + worker on Phase 1 nodes; Phase 2 adds workers
   - 8 cores / 16 threads per node
@@ -132,4 +117,4 @@ Phase 2 doesn't change the model — still three FDs. Nodes 7 and 8 join FD-A an
   - OKD on SCOS with Rook-Ceph
 </Callout>
 
-Every decision traces back to the requirements from the previous post. Hardware specifics come in the BOM post. Next up: network architecture — because none of this works without the right connectivity between nodes.
+Every decision traces back to the requirements from the [why post](/blog/homelab-why). Hardware specifics come in the BOM post. Next up: network architecture — because none of this works without the right connectivity between nodes.
