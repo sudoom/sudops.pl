@@ -71,7 +71,7 @@ KubeVirt is a CNCF Incubating project, and it's the foundation of OKD Virtualiza
 The Proxmox approach makes sense if VMs are your primary workload and containers are secondary. For me it's the opposite — containers first, occasional VMs. Running an entire hypervisor layer to support 1-2 VMs doesn't justify the overhead.
 
 <Callout title="Key point" variant="important">
-  Same end state (OKD+Rook-Ceph+KubeVirt), but Proxmox stacks 5 layers, OKD stacks 3. In OKD, containers/Rook-Ceph/VMs are peers at the same level. In Proxmox, OKD runs inside a VM, containers inside OKD.
+  Same end state but Proxmox stacks 5 layers, OKD stacks 3. In OKD, containers/Rook-Ceph/VMs are peers at the same level. In Proxmox, OKD runs inside a VM, containers inside OKD.
 </Callout>
 
 ![Proxmox approach vs OKD approach — same end state, different layer depth](./post01proxmoxvsokd.png)
