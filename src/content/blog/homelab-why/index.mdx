@@ -36,7 +36,7 @@ Beyond the operational pain, there's a learning ceiling. You can read about etcd
 
 **Network isolation.** Storage traffic, management traffic, IoT, external services — all on separate VLANs with firewall policies between them.
 
-**Virtualization alongside containers.** OKD Virtualization (KubeVirt) for running VMs as Kubernetes resources. Useful for workloads that don't containerize well.
+**Virtualization alongside containers.** Occasionally I'll need a VM for something that doesn't containerize. That should be managed by the same platform, not a separate hypervisor. More on this below.
 
 **A platform I can learn from.** Not Plex in a container. Infrastructure that mirrors what I work with professionally, from physical cabling to storage class definitions.
 
@@ -54,19 +54,39 @@ More nodes means more hardware, more cables, more things that can fail. That's t
 
 ![Monolithic single-server approach vs hyperconverged multi-node cluster](./post01monolithicvshci.png)
 
+## Kubernetes-native, not hypervisor-first
+
+The traditional homelab stack for HCI is Proxmox: hypervisor layer, then VMs, then Kubernetes running inside VMs, with Ceph managed by Proxmox for storage. It works, but it's a stack of layers — each with its own management plane, its own upgrade lifecycle, its own failure modes.
+
+Proxmox does have containers via LXC, but that's not comparable to Kubernetes. LXC gives you lightweight system containers — basically VMs without the hypervisor overhead. It doesn't give you pod scheduling, service discovery, rolling deployments, operator lifecycle, or any of the orchestration that makes Kubernetes useful. For running containers at scale, you need Kubernetes anyway — and then Proxmox becomes just a hypervisor hosting the VMs that run Kubernetes.
+
+Proxmox also integrates Ceph, but it's not the full Ceph experience. Proxmox uses its own `pveceph` tooling (developed before `cephadm` existed), not the standard Ceph orchestrator. The RGW module (object storage) is omitted from Proxmox's dashboard package — you need to manually download and configure it. Erasure coded pools are CLI-only, not in the GUI. NFS-Ganesha and SMB gateways aren't managed at all. It's Ceph for VM disk images, not Ceph as a full storage platform.
+
+I'm going the other direction: Kubernetes is the platform, running directly on bare metal. Containers are the primary workload — that's what I run day to day. When I occasionally need a VM (one or two lightweight VMs for something that doesn't containerize), OKD Virtualization (KubeVirt) handles it. VMs become Kubernetes resources — managed by the same API, same YAML, same GitOps pipelines. ArgoCD can deploy a VM the same way it deploys a Deployment. No separate hypervisor management interface.
+
+There's also the portability argument. Kubernetes runs the same everywhere — cloud, edge, bare metal, VMs. The patterns, tooling, and skills transfer directly. A hypervisor doesn't give you that. What I learn building this homelab on OKD applies to any Kubernetes environment. What I'd learn on Proxmox applies to... Proxmox.
+
+KubeVirt is a CNCF Incubating project, and it's the foundation of OKD Virtualization. It's relatively new compared to traditional hypervisors, so hands-on experience with it has real professional value — same as with Rook-Ceph.
+
+The Proxmox approach makes sense if VMs are your primary workload and containers are secondary. For me it's the opposite — containers first, occasional VMs. Running an entire hypervisor layer to support 1-2 VMs doesn't justify the overhead.
+
+<Callout title="Key point" variant="important">
+  Same end state (OKD+Rook-Ceph+KubeVirt), but Proxmox stacks 5 layers, OKD stacks 3. In OKD, containers/Rook-Ceph/VMs are peers at the same level. In Proxmox, OKD runs inside a VM, containers inside OKD.
+</Callout>
+
+{/* ![Proxmox approach vs OKD approach — same end state, different layer depth](./post01proxmoxvsokd.png) */}
+
 ## Why OKD?
 
 If I only needed Kubernetes, there are simpler options — K3s, MicroK8s, kubeadm. But OKD gives you an opinionated, integrated platform.
 
 I work with OpenShift daily. I know the operator model, the upgrade lifecycle, the monitoring stack, how it all fits together. Building a homelab on a different platform means context-switching between work and personal projects — two sets of patterns, two sets of tooling, two sets of failure modes. OKD lets me go deeper on the same stack I use professionally, while exploring layers that are normally hidden behind managed deployments.
 
-OKD is the upstream community distribution of OpenShift. Operator framework, monitoring and logging, OAuth, image registry, and the foundation for OKD Virtualization (KubeVirt). Runs on SCOS (CentOS Stream CoreOS), same operator lifecycle as OpenShift — without the subscription cost.
+OKD is the upstream community distribution of OpenShift. Operator framework, monitoring and logging, OAuth, image registry, OKD Virtualization. Runs on SCOS (CentOS Stream CoreOS), same operator lifecycle as OpenShift — without the subscription cost.
 
-<Callout title="Why Rook-Ceph instead of ODF?" variant="tip">
-  OpenShift Data Foundation requires a Red Hat subscription and isn't part of OKD. Rook-Ceph is the upstream operator that ODF is built on — same Ceph underneath, same operator model, no licensing.
-</Callout>
+The whole platform stack is built on CNCF projects: Kubernetes for orchestration, KubeVirt (CNCF Incubating) for virtualization, Rook-Ceph (CNCF Graduated) for storage. This is deliberate — a Kubernetes-first platform where every component follows the same patterns, same API model, same operator lifecycle. No proprietary layers, no vendor lock-in. The skills and patterns transfer directly to any Kubernetes environment.
 
-The trade-off: community support instead of Red Hat support. For a learning environment, that's a feature — when something breaks, you fix it yourself.
+The trade-off: community support instead of enterprise support. For a learning environment, that's a feature — when something breaks, you fix it yourself.
 
 ## The principle behind the series
 
@@ -84,13 +104,13 @@ The series follows the actual decision sequence:
 
 <Callout title="Series roadmap" variant="summary">
   1. **Why** — You're reading it.
-  2. **Design** — Translating goals into specs. How many nodes, how much RAM, what storage, why.
+  2. **Compute Architecture** — How many nodes, how much RAM, what storage tiers, failure domains, and why.
   3. **Network Architecture** — VLANs, 10 Gbps storage networking, and why the network is the foundation.
   4. **Storage Architecture** — Tiered Ceph with fast NVMe and slow HDD pools, replication strategies, Rook-Ceph.
   5. **Bill of Materials** — Real pricing from the Polish used market. What I chose, what I rejected, and compatibility surprises.
   6. **Validation** — Single-node testing before full commitment. BIOS config, SCOS boot, NIC compatibility, throughput verification.
 
-  More posts as the project evolves — deployment, day-2 ops, workload onboarding. The series grows with the infrastructure.
+  More posts will follow as the project evolves — deployment, day-2 ops, workload onboarding. The series grows with the infrastructure.
 </Callout>
 
 ## Who this is for
