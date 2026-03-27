@@ -70,6 +70,7 @@ When converting raw drafts to MDX:
 - Images go in the same directory as the post, referenced with `./filename.png`
 - Use first person ("I"), never "we" — this is a personal blog
 - Keep prose tight and conversational. Avoid textbook-style explanations — assume the reader has context. If something can be said in one sentence, don't use three.
+- Prefer simple words over fancy ones (e.g. "leftovers" not "remnants", "locked down" not "walled garden", "can't be changed" not "immutable", "removes" not "eliminates")
 
 ### Raw Blog Post Drafts
 

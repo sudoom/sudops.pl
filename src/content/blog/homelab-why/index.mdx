@@ -22,7 +22,7 @@ The problems showed up fast. One CPU, one disk, one NIC, no room to grow. No red
 
 Then there's the upgrade path. Vanilla Kubernetes on a single node means manually checking kubelet vs API server compatibility, verifying your CNI plugin supports the new version, making sure CSI drivers still work, confirming the container runtime defaults haven't changed. Every upgrade is a research project with no rollback if you get it wrong. On a multi-node platform with operator-managed lifecycle, those components get coordinated for you. On a single self-managed node, it's all on you.
 
-Beyond the operational pain, there's a learning ceiling. You can read about etcd consensus, pod anti-affinity, and storage replication all day. But you don't really get it until you've seen a node drop out and watched workloads reschedule to surviving nodes.
+Beyond the operational pain, there's a learning wall. You can read about etcd consensus, pod anti-affinity, and storage replication all day. But you don't really get it until you've seen a node drop out and watched workloads reschedule to surviving nodes.
 
 ![Current single-node setup vs target OKD cluster](./post01currentvsgoal.png)
 

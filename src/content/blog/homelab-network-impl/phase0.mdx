@@ -31,10 +31,10 @@ With VLAN filtering enabled on both the CCR2004 and CRS317, every device behind 
 
 After hours of troubleshooting — packet captures on every interface, toggling HW offload, swapping SFP+ ports, factory resets on both — the root cause: the Marvell Prestera switch chip in the CRS317 doesn't reliably handle VLAN 1 when carried **tagged** on a trunk. ARP broadcasts flood correctly, but unicast ARP replies and DHCP offers get silently dropped before reaching the destination access port.
 
-VLAN 1 has special semantics in 802.1Q — it's the "default" VLAN, and some hardware treats it differently in the forwarding pipeline. The Marvell 98DX8216 in the CRS317 is one of those cases.
+VLAN 1 has special behavior in 802.1Q — it's the "default" VLAN, and some hardware treats it differently in the forwarding pipeline. The Marvell 98DX8216 in the CRS317 is one of those cases.
 
 <Callout title="Lesson learned" variant="danger">
-  Avoid VLAN 1 on MikroTik trunk links, especially between devices with different switch chips (CCR2004 uses Marvell 88E6191X, CRS317 uses Marvell 98DX8216). Use any other VLAN ID. This costs nothing and eliminates an entire class of hard-to-debug forwarding issues.
+  Avoid VLAN 1 on MikroTik trunk links, especially between devices with different switch chips (CCR2004 uses Marvell 88E6191X, CRS317 uses Marvell 98DX8216). Use any other VLAN ID. This costs nothing and avoids a whole category of hard-to-debug forwarding issues.
 </Callout>
 
 The fix: don't use VLAN 1. I picked VLAN 5. Set it as PVID on all access ports, carry it tagged on the trunk. Everything works immediately.
@@ -59,7 +59,7 @@ Node 4's second CX4121C port (sfp-sfpplus3) is reserved for LACP bonding later. 
 
 ## Factory reset — both devices
 
-Both devices must start clean. The MikroTik default config creates a bridge with all ports — those remnants will conflict with VLAN filtering.
+Both devices must start clean. The MikroTik default config creates a bridge with all ports — those leftovers will conflict with VLAN filtering.
 
 ```routeros
 # CCR2004:
@@ -94,11 +94,11 @@ set winbox address=192.168.1.0/24
 
 ### What is bridge-lan and why does everything go into it?
 
-In MikroTik, a bridge is a virtual switch — it connects physical ports at L2. Without one, each port on the CCR2004 is isolated. Devices on ether1 can't talk to devices on ether8. Adding ports to `bridge-lan` creates a single switching domain — like plugging everything into the same unmanaged switch. VLAN filtering on top of that bridge creates the segmentation: ports tagged for VLAN 5 can only talk to other VLAN 5 ports, VLAN 10 only to VLAN 10, etc.
+In MikroTik, a bridge is a virtual switch — it connects physical ports at L2. Without one, each port on the CCR2004 is isolated. Devices on ether1 can't talk to devices on ether8. Adding ports to `bridge-lan` creates a single switching domain — like plugging everything into the same unmanaged switch. VLAN filtering on top of that bridge creates the separation: ports tagged for VLAN 5 can only talk to other VLAN 5 ports, VLAN 10 only to VLAN 10, etc.
 
 ![Bridge concept — isolated ports vs unified switching domain with VLAN filtering](./post06bridge.png)
 
-The WAN interface (sfp-sfpplus1) deliberately stays **out** of the bridge. It's a routed interface — traffic between LAN and WAN goes through the router's IP stack (NAT, firewall), not through L2 switching.
+The WAN interface (sfp-sfpplus1) stays **out** of the bridge on purpose. It's a routed interface — traffic between LAN and WAN goes through the router's IP stack (NAT, firewall), not through L2 switching.
 
 ### Bridge and ports
 
@@ -216,7 +216,7 @@ add chain=forward action=drop comment="Default drop"
 ```
 
 <Callout title="Firewall references vlan5-frontnet, not bridge-lan" variant="important">
-  Using `bridge-lan` would match traffic from all VLANs including Backnet, bypassing isolation entirely.
+  Using `bridge-lan` would match traffic from all VLANs including Backnet, breaking isolation completely.
 </Callout>
 
 ### NAT — why masquerade?
@@ -244,7 +244,7 @@ add chain=prerouting action=drop in-interface-list=WAN src-address=172.16.0.0/12
   If your ISP router does NAT (not bridge mode) and gives the CCR2004 a `192.168.0.x` address, remove the `192.168.0.0/16` rule — it would block all return traffic.
 </Callout>
 
-### Hardening — reducing the attack surface
+### Hardening — locking things down
 
 MikroTik ships with several services enabled by default that you don't need and shouldn't expose:
 
