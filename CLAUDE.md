@@ -68,6 +68,8 @@ When converting raw drafts to MDX:
 - Convert blockquotes/notes to `<Callout>` components with appropriate variants
 - Use ` ```routeros ` for MikroTik/RouterOS config blocks (custom TextMate grammar in `src/grammars/`), `bash` for pure shell commands, plain ` ``` ` for terminal output with prompts
 - Images go in the same directory as the post, referenced with `./filename.png`
+- Use first person ("I"), never "we" — this is a personal blog
+- Keep prose tight and conversational. Avoid textbook-style explanations — assume the reader has context. If something can be said in one sentence, don't use three.
 
 ### Raw Blog Post Drafts
 
