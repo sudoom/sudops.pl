@@ -273,6 +273,19 @@ MikroTik ships with several services enabled by default that you don't need and 
 
 Verify immediately: `ping 192.168.1.1` from any device.
 
+### What I just built
+
+Quick recap of the CCR2004 config:
+
+- **Bridge** — connects all LAN ports into one switching domain
+- **VLAN table** — VLAN 5 (Frontnet) on all access ports, VLAN 10 (Backnet) tagged on the trunk only
+- **VLAN interfaces** — gateway IPs on `vlan5-frontnet` and `vlan10-backnet`, not on the bridge itself
+- **DHCP** — Frontnet only, bound to the VLAN interface. Static-only on Backnet
+- **Firewall** — Frontnet can reach everything, Backnet is dropped, WAN is locked down
+- **NAT** — masquerade for internet access
+- **Bogon protection** — drops spoofed private addresses on WAN
+- **Hardening** — unnecessary services disabled, SSH hardened, MAC Winbox restricted to management
+
 ## CRS317 switch configuration
 
 The CRS317 is pure L2. No routing, no firewall — just forwarding frames between the trunk and access ports at line rate.
@@ -346,6 +359,16 @@ Node 4's storage port has `pvid=10` — the node sends plain Ethernet frames, th
 ```
 
 Recovery if needed: ether1 OOB at `192.168.1.200`.
+
+### What I just built
+
+CRS317 recap — much simpler than the router:
+
+- **OOB management** — ether1 with a static IP, outside the bridge. Safety net if VLAN filtering breaks things
+- **Disabled ports** — everything unused is off and labeled for future use
+- **Bridge** — three active ports: trunk to router, Node 4 storage, Mac mini
+- **VLAN table** — VLAN 5 for Frontnet (Mac mini), VLAN 10 for Backnet (Node 4 storage), both tagged on the trunk
+- **HW offload** — `hw=yes` on all bridge ports, forwarding handled by the Marvell ASIC
 
 ## End-to-end verification
 
