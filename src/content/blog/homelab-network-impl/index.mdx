@@ -1,0 +1,20 @@
+---
+title: 'Network Implementation'
+description: 'From network design to real MikroTik configuration — VLAN setup, firewall rules, and storage isolation across deployment phases.'
+date: 2026-03-28
+tags: ['homelab', 'okd', 'networking', 'mikrotik', 'infrastructure']
+authors: ['vd']
+---
+
+import Callout from '@/components/Callout.astro'
+
+The [network design](/blog/homelab-design/network) defined VLANs, firewall policy, and device requirements. This series covers the actual MikroTik configuration — CCR2004 router and CRS317 switch, from factory reset to production.
+
+Configuration grows with the cluster. Each phase adds only what's needed:
+
+<Callout title="Implementation phases" variant="summary">
+  1. **Phase 0** — Minimal config for SNO validation. Two VLANs (Frontnet + Backnet), one node, factory reset to working network. Includes the VLAN 1 lesson that cost hours of debugging.
+  2. **Post-SNO** — LACP bonds, jumbo frames, additional node ports, and expanded VLAN assignments. *(coming soon)*
+</Callout>
+
+Start with Phase 0 to see the base configuration and the VLAN 1 gotcha.
