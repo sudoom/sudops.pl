@@ -63,7 +63,7 @@ Node 4's second CX4121C port (sfp-sfpplus3) is reserved for LACP bonding later. 
 
 Both devices must start clean. The MikroTik default config creates a bridge with all ports — those remnants will conflict with VLAN filtering.
 
-```
+```routeros
 # CCR2004:
 /system reset-configuration no-defaults=yes skip-backup=yes
 
@@ -79,7 +79,7 @@ The CCR2004 is the edge router — NAT boundary, DHCP server, inter-VLAN firewal
 
 ### System basics
 
-```
+```routeros
 /system identity set name="gw-home"
 /system clock set time-zone-name=Europe/Warsaw
 
@@ -106,7 +106,7 @@ The WAN interface (sfp-sfpplus1) deliberately stays **out** of the bridge. It's 
 
 ### Bridge and ports
 
-```
+```routeros
 /interface bridge add name=bridge-lan \
     vlan-filtering=no \
     pvid=5 \
@@ -117,7 +117,7 @@ The WAN interface (sfp-sfpplus1) deliberately stays **out** of the bridge. It's 
   We create the bridge with filtering off and enable it as the very last step, after everything else is verified. Enabling it with incorrect VLAN table entries will silently drop frames and lock you out. Every MikroTik VLAN guide warns about this. Every homelab builder learns it the hard way.
 </Callout>
 
-```
+```routeros
 # Synology NAS (ether2 reserved for future LACP bond)
 /interface bridge port add bridge=bridge-lan interface=ether1  pvid=5 comment="Synology"
 /interface bridge port add bridge=bridge-lan interface=ether3  pvid=5 comment="WAP"
@@ -143,7 +143,7 @@ Every LAN port gets PVID=5. The WAN interface (sfp-sfpplus1) stays out of the br
 
 ### VLAN table
 
-```
+```routeros
 # VLAN 5 — Frontnet: tagged on bridge + trunk, untagged on access ports
 /interface bridge vlan add bridge=bridge-lan vlan-ids=5 \
     tagged=bridge-lan,sfp-sfpplus2 \
@@ -158,7 +158,7 @@ Two VLANs, two entries. IoT/Guest/DMZ added when needed.
 
 ### VLAN interfaces and IP addressing
 
-```
+```routeros
 /interface vlan add name=vlan5-frontnet interface=bridge-lan vlan-id=5
 /interface vlan add name=vlan10-backnet  interface=bridge-lan vlan-id=10
 
@@ -178,7 +178,7 @@ DNS static records and OKD-specific entries (API VIP, wildcard ingress) are cove
 
 ### DHCP
 
-```
+```routeros
 /ip dhcp-client add interface=sfp-sfpplus1 use-peer-dns=no use-peer-ntp=no \
     add-default-route=yes comment="WAN DHCP"
 
@@ -199,7 +199,7 @@ Pool: `.50–.249`. Static infrastructure: `.2–.49`. OKD VIPs: `.253–.254`. 
 
 ### Firewall
 
-```
+```routeros
 /ip firewall filter
 # INPUT
 add chain=input action=accept connection-state=established,related
@@ -229,7 +229,7 @@ The CCR2004 sits between the private network (192.168.x.x) and the public intern
 
 One rule covers everything:
 
-```
+```routeros
 /ip firewall nat add chain=srcnat out-interface-list=WAN action=masquerade
 ```
 
@@ -239,7 +239,7 @@ Port forwards for OKD (API on 6443, ingress on 443/80) are added when external a
 
 The WAN interface has a public IP (ISP in bridge mode). Packets arriving from the internet with private source addresses (192.168.x.x, 10.x.x.x, 172.16-31.x.x) are spoofed — they shouldn't exist on a public link. Drop them before they reach the firewall:
 
-```
+```routeros
 /ip firewall raw
 add chain=prerouting action=drop in-interface-list=WAN src-address=192.168.0.0/16
 add chain=prerouting action=drop in-interface-list=WAN src-address=10.0.0.0/8
@@ -254,7 +254,7 @@ add chain=prerouting action=drop in-interface-list=WAN src-address=172.16.0.0/12
 
 MikroTik ships with several services enabled by default that you don't need and shouldn't expose:
 
-```
+```routeros
 /ip neighbor discovery-settings set discover-interface-list=LAN
 /tool bandwidth-server set enabled=no
 /tool mac-server set allowed-interface-list=MGMT
@@ -269,7 +269,7 @@ MikroTik ships with several services enabled by default that you don't need and 
 
 ### Enable VLAN filtering — last step
 
-```
+```routeros
 /interface bridge set bridge-lan vlan-filtering=yes
 ```
 
@@ -285,7 +285,7 @@ The CRS317 is pure L2. No routing, no firewall — just forwarding frames betwee
 
 ### System basics + OOB management
 
-```
+```routeros
 /system identity set name="sw-storage"
 /system clock set time-zone-name=Europe/Warsaw
 
@@ -301,7 +301,7 @@ The CRS317 is pure L2. No routing, no firewall — just forwarding frames betwee
 
 ### Disable unused ports
 
-```
+```routeros
 /interface set sfp-sfpplus3  disabled=yes comment="Reserved (Node 4 bond port 2)"
 /interface set sfp-sfpplus4  disabled=yes comment="Reserved (Node 5 storage)"
 /interface set sfp-sfpplus5  disabled=yes comment="Reserved (Node 5 bond port 2)"
@@ -321,7 +321,7 @@ Every unused port disabled and commented with its future purpose.
 
 ### Bridge, ports, and VLANs
 
-```
+```routeros
 /interface bridge add name=bridge-fabric vlan-filtering=no pvid=5 \
     comment="Storage fabric bridge — enable vlan-filtering LAST"
 
@@ -347,7 +347,7 @@ Node 4's storage port has `pvid=10` — the node sends plain Ethernet frames, th
 
 ### Enable VLAN filtering
 
-```
+```routeros
 /interface bridge set bridge-fabric vlan-filtering=yes
 ```
 
@@ -384,7 +384,7 @@ sudo ip link set enp1s0f0np0 up
 
 From the router:
 
-```
+```routeros
 /ping 192.168.10.2 count=3
 # Expected: Node 4 storage IP reachable
 ```
@@ -400,7 +400,7 @@ ping -c 3 -I enp1s0f0np0 8.8.8.8
 # Expected: 100% packet loss
 ```
 
-```
+```routeros
 # On CCR2004 — verify firewall counter increments:
 /ip firewall filter print stats where comment~"Backnet"
 # Expected: packet counter > 0

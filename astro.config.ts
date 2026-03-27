@@ -18,12 +18,23 @@ import { pluginLineNumbers } from '@expressive-code/plugin-line-numbers'
 
 import tailwindcss from '@tailwindcss/vite'
 
+import routerosGrammar from './src/grammars/routeros.tmLanguage.json'
+
 export default defineConfig({
   site: 'https://sudops.pl',
   integrations: [
     expressiveCode({
       themes: ['github-light', 'github-dark'],
       plugins: [pluginCollapsibleSections(), pluginLineNumbers()],
+      shiki: {
+        langs: [
+          {
+            ...routerosGrammar,
+            name: 'routeros',
+            scopeName: 'source.routeros',
+          },
+        ],
+      },
       useDarkModeMediaQuery: false,
       themeCssSelector: (theme) => `[data-theme="${theme.name.split('-')[1]}"]`,
       defaultProps: {

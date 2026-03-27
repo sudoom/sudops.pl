@@ -66,7 +66,7 @@ The blog is a homelab series. Posts use a parent/subpost pattern where topics wi
 When converting raw drafts to MDX:
 - Strip social media drafts (LinkedIn/Slack/Reddit) from the end
 - Convert blockquotes/notes to `<Callout>` components with appropriate variants
-- Use plain ` ``` ` for MikroTik/RouterOS config blocks (no syntax highlighting available), `bash` for pure shell commands, plain ` ``` ` for terminal output with prompts
+- Use ` ```routeros ` for MikroTik/RouterOS config blocks (custom TextMate grammar in `src/grammars/`), `bash` for pure shell commands, plain ` ``` ` for terminal output with prompts
 - Images go in the same directory as the post, referenced with `./filename.png`
 
 ### Raw Blog Post Drafts
