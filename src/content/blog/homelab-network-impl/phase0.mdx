@@ -9,9 +9,7 @@ order: 1
 
 import Callout from '@/components/Callout.astro'
 
-The [network design post](/blog/homelab-design/network) defined VLANs, firewall policy, and device requirements. This post is where that design hits real hardware — a MikroTik CCR2004 router and CRS317 switch, configured from factory reset to a working VLAN-segmented network.
-
-This is the minimal viable configuration for Phase 0: one node, two VLANs, two devices. Everything else waits.
+The [network design post](/blog/homelab-design/network) defined VLANs, firewall policy, and device requirements. This is where that design hits real hardware — CCR2004 router and CRS317 switch, factory reset to a working VLAN-segmented network. One node, two VLANs, two devices. Everything else waits.
 
 <Callout title="What's in scope" variant="summary">
   - **VLAN 5 (Frontnet)** — management, SSH, DHCP, DNS. OKD API and ingress VIPs also live here for SNO.
@@ -96,9 +94,7 @@ set winbox address=192.168.1.0/24
 
 ### What is bridge-lan and why does everything go into it?
 
-In MikroTik, a bridge is a virtual switch — it connects physical ports at L2 so frames can flow between them. Without a bridge, each port on the CCR2004 is an isolated interface. Devices on ether1 can't talk to devices on ether8. Nothing works.
-
-By adding ports to `bridge-lan`, you create a single switching domain. Frames from any port in the bridge can reach any other port in the bridge — like plugging everything into the same unmanaged switch. Then VLAN filtering on top of that bridge creates the segmentation: ports tagged for VLAN 5 can only talk to other VLAN 5 ports, VLAN 10 only to VLAN 10, etc.
+In MikroTik, a bridge is a virtual switch — it connects physical ports at L2. Without one, each port on the CCR2004 is isolated. Devices on ether1 can't talk to devices on ether8. Adding ports to `bridge-lan` creates a single switching domain — like plugging everything into the same unmanaged switch. VLAN filtering on top of that bridge creates the segmentation: ports tagged for VLAN 5 can only talk to other VLAN 5 ports, VLAN 10 only to VLAN 10, etc.
 
 ![Bridge concept — isolated ports vs unified switching domain with VLAN filtering](./post06bridge.png)
 
@@ -225,9 +221,7 @@ add chain=forward action=drop comment="Default drop"
 
 ### NAT — why masquerade?
 
-The CCR2004 sits between the private network (192.168.x.x) and the public internet. Devices on the LAN use RFC1918 addresses — these aren't routable on the internet. NAT (masquerade) rewrites the source address of outgoing packets to the router's public IP, and rewrites it back on the return path. Without it, no device on the network can reach the internet.
-
-One rule covers everything:
+Standard masquerade — rewrites source addresses from RFC1918 to the router's public IP on the way out. Without it, nothing reaches the internet.
 
 ```routeros
 /ip firewall nat add chain=srcnat out-interface-list=WAN action=masquerade
@@ -237,7 +231,7 @@ Port forwards for OKD (API on 6443, ingress on 443/80) are added when external a
 
 ### Bogon protection
 
-The WAN interface has a public IP (ISP in bridge mode). Packets arriving from the internet with private source addresses (192.168.x.x, 10.x.x.x, 172.16-31.x.x) are spoofed — they shouldn't exist on a public link. Drop them before they reach the firewall:
+With ISP in bridge mode, the WAN has a public IP. Private source addresses showing up on that link are spoofed — drop them before they hit the firewall:
 
 ```routeros
 /ip firewall raw
