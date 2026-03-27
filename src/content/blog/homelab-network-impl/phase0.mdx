@@ -94,7 +94,7 @@ set winbox address=192.168.1.0/24
 
 ### What is bridge-lan and why does everything go into it?
 
-In MikroTik, a bridge is a virtual switch — it connects physical ports at L2. Without one, each port on the CCR2004 is isolated. Devices on ether1 can't talk to devices on ether8. Adding ports to `bridge-lan` creates a single switching domain — like plugging everything into the same unmanaged switch. VLAN filtering on top of that bridge creates the separation: ports tagged for VLAN 5 can only talk to other VLAN 5 ports, VLAN 10 only to VLAN 10, etc.
+In MikroTik, a bridge is a virtual switch — it connects physical ports at L2. Without one, each port on the CCR2004 is isolated. Devices on ether1 can't talk to devices on ether8. Adding ports to `bridge-lan` creates a single switching domain — like plugging everything into the same unmanaged switch. VLAN filtering on top of that bridge creates the separation: ports tagged for VLAN 5 can only talk to other VLAN 5 ports, VLAN 10 only to VLAN 10, etc. If this isn't clicking, the [MikroTik VLAN videos](#references) at the bottom walk through bridges and vlan-filtering step by step.
 
 ![Bridge concept — isolated ports vs unified switching domain with VLAN filtering](./post06bridge.png)
 
