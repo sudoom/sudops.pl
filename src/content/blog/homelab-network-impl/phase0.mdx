@@ -39,7 +39,7 @@ VLAN 1 has special semantics in 802.1Q — it's the "default" VLAN, and some har
   Avoid VLAN 1 on MikroTik trunk links, especially between devices with different switch chips (CCR2004 uses Marvell 88E6191X, CRS317 uses Marvell 98DX8216). Use any other VLAN ID. This costs nothing and eliminates an entire class of hard-to-debug forwarding issues.
 </Callout>
 
-The fix: don't use VLAN 1. We picked VLAN 5. Set it as PVID on all access ports, carry it tagged on the trunk. Everything works immediately.
+The fix: don't use VLAN 1. I picked VLAN 5. Set it as PVID on all access ports, carry it tagged on the trunk. Everything works immediately.
 
 ## Physical cabling
 
@@ -98,7 +98,7 @@ set winbox address=192.168.1.0/24
 
 In MikroTik, a bridge is a virtual switch — it connects physical ports at L2 so frames can flow between them. Without a bridge, each port on the CCR2004 is an isolated interface. Devices on ether1 can't talk to devices on ether8. Nothing works.
 
-By adding ports to `bridge-lan`, we create a single switching domain. Frames from any port in the bridge can reach any other port in the bridge — like plugging everything into the same unmanaged switch. Then VLAN filtering on top of that bridge creates the segmentation: ports tagged for VLAN 5 can only talk to other VLAN 5 ports, VLAN 10 only to VLAN 10, etc.
+By adding ports to `bridge-lan`, you create a single switching domain. Frames from any port in the bridge can reach any other port in the bridge — like plugging everything into the same unmanaged switch. Then VLAN filtering on top of that bridge creates the segmentation: ports tagged for VLAN 5 can only talk to other VLAN 5 ports, VLAN 10 only to VLAN 10, etc.
 
 ![Bridge concept — isolated ports vs unified switching domain with VLAN filtering](./post06bridge.png)
 
@@ -114,7 +114,7 @@ The WAN interface (sfp-sfpplus1) deliberately stays **out** of the bridge. It's 
 ```
 
 <Callout title="vlan-filtering=no is deliberate" variant="warning">
-  We create the bridge with filtering off and enable it as the very last step, after everything else is verified. Enabling it with incorrect VLAN table entries will silently drop frames and lock you out. Every MikroTik VLAN guide warns about this. Every homelab builder learns it the hard way.
+  The bridge is created with filtering off and enabled as the very last step, after everything else is verified. Enabling it with incorrect VLAN table entries will silently drop frames and lock you out. Every MikroTik VLAN guide warns about this. Every homelab builder learns it the hard way.
 </Callout>
 
 ```routeros
