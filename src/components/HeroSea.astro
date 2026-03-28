@@ -1,0 +1,121 @@
+<div class="hero-sea overflow-hidden rounded-lg">
+<style>
+@media(prefers-reduced-motion:reduce){.hero-sea *{animation:none!important;transition:none!important}}
+@keyframes ks-wave1{0%{transform:translateX(0)}100%{transform:translateX(-680px)}}
+@keyframes ks-wave2{0%{transform:translateX(0)}100%{transform:translateX(-680px)}}
+@keyframes ks-boat-bob{0%,100%{transform:translateY(0) rotate(0deg)}25%{transform:translateY(-4px) rotate(-1.5deg)}75%{transform:translateY(-4px) rotate(1.2deg)}}
+@keyframes ks-twinkle{0%,100%{opacity:.25}50%{opacity:1}}
+@keyframes ks-twinkle2{0%,100%{opacity:.4}50%{opacity:.1}}
+@keyframes ks-drift-up{0%{transform:translateY(10px);opacity:0}50%{opacity:.55}100%{transform:translateY(-26px);opacity:0}}
+@keyframes ks-pulse-line{0%,100%{opacity:.06}50%{opacity:.32}}
+@keyframes ks-sonar{0%{r:4;opacity:.4}100%{r:18;opacity:0}}
+@keyframes ks-swim-left{0%{transform:translateX(750px)}100%{transform:translateX(-100px)}}
+@keyframes ks-swim-right{0%{transform:translateX(-100px)}100%{transform:translateX(750px)}}
+@keyframes ks-wiggle{0%,100%{transform:rotate(0deg)}30%{transform:rotate(3deg)}70%{transform:rotate(-3deg)}}
+@keyframes ks-star-pulse{0%,100%{opacity:.5}50%{opacity:.9}}
+</style>
+<svg width="100%" viewBox="0 0 680 460" xmlns="http://www.w3.org/2000/svg" role="img" aria-label="Navigator of Kubernetes Seas — animated hero illustration showing a boat sailing under Ursa Major, with underwater server racks connected in a mesh network">
+<defs>
+<linearGradient id="ks-sky" x1="0" y1="0" x2="0" y2="1"><stop offset="0%" stop-color="#070b1e"/><stop offset="35%" stop-color="#0b1026"/><stop offset="70%" stop-color="#111d3a"/><stop offset="100%" stop-color="#142840"/></linearGradient>
+<linearGradient id="ks-deep" x1="0" y1="0" x2="0" y2="1"><stop offset="0%" stop-color="#0c1830"/><stop offset="50%" stop-color="#08101e"/><stop offset="100%" stop-color="#050a14"/></linearGradient>
+<linearGradient id="ks-wf1" x1="0" y1="0" x2="0" y2="1"><stop offset="0%" stop-color="#14304a" stop-opacity=".75"/><stop offset="100%" stop-color="#0a1520" stop-opacity=".95"/></linearGradient>
+<linearGradient id="ks-wf2" x1="0" y1="0" x2="0" y2="1"><stop offset="0%" stop-color="#102638" stop-opacity=".5"/><stop offset="100%" stop-color="#0a1520" stop-opacity=".8"/></linearGradient>
+<radialGradient id="ks-mg" cx="50%" cy="50%" r="50%"><stop offset="0%" stop-color="#c9dae0" stop-opacity=".14"/><stop offset="100%" stop-color="#c9dae0" stop-opacity="0"/></radialGradient>
+<clipPath id="ks-underwater"><rect x="0" y="258" width="1400" height="210"/></clipPath>
+</defs>
+
+<rect width="680" height="260" fill="url(#ks-sky)"/>
+<rect y="256" width="680" height="204" fill="url(#ks-deep)"/>
+
+<circle cx="590" cy="48" r="60" fill="url(#ks-mg)"/>
+<circle cx="590" cy="48" r="10" fill="#d4e4ea" opacity=".9"/>
+
+<circle cx="42" cy="16" r=".9" fill="#d0dce6" style="animation:ks-twinkle 3.5s ease infinite"/>
+<circle cx="290" cy="22" r=".7" fill="#b8c8d4" style="animation:ks-twinkle 5s ease infinite 1.2s"/>
+<circle cx="430" cy="12" r=".8" fill="#d8e4ee" style="animation:ks-twinkle 3.8s ease infinite .3s"/>
+<circle cx="520" cy="28" r=".5" fill="#c0d0dc" style="animation:ks-twinkle 4.5s ease infinite 2s"/>
+<circle cx="660" cy="20" r=".6" fill="#d4e0ea" style="animation:ks-twinkle 3.2s ease infinite 1s"/>
+<circle cx="350" cy="55" r=".5" fill="#b0c0cc" style="animation:ks-twinkle2 6s ease infinite"/>
+<circle cx="490" cy="68" r=".4" fill="#b8c8d4" style="animation:ks-twinkle 4s ease infinite 1.5s"/>
+<circle cx="160" cy="10" r=".6" fill="#c4d4e0" style="animation:ks-twinkle2 5.5s ease infinite .8s"/>
+<circle cx="80" cy="42" r=".5" fill="#c0d0dc" style="animation:ks-twinkle 4.8s ease infinite .7s"/>
+<circle cx="620" cy="40" r=".7" fill="#d0dce6" style="animation:ks-twinkle 3.6s ease infinite 1.4s"/>
+<circle cx="480" cy="35" r=".4" fill="#b8c8d4" style="animation:ks-twinkle2 5s ease infinite 1.8s"/>
+
+<!-- Ursa Major -->
+<g style="animation:ks-star-pulse 8s ease infinite">
+<circle cx="168" cy="118" r="2.5" fill="#a0c8e0"/><circle cx="168" cy="162" r="2.3" fill="#92bcd8"/><circle cx="128" cy="162" r="2" fill="#8ab4d0"/><circle cx="128" cy="128" r="2.1" fill="#92bcd8"/><circle cx="100" cy="120" r="2.2" fill="#9ac4dc"/><circle cx="72" cy="108" r="1.9" fill="#8ab4d0"/><circle cx="44" cy="92" r="1.8" fill="#82acc8"/>
+<line x1="168" y1="118" x2="168" y2="162" stroke="#4fd6be" stroke-width=".5" opacity=".35"/><line x1="168" y1="162" x2="128" y2="162" stroke="#4fd6be" stroke-width=".5" opacity=".35"/><line x1="128" y1="162" x2="128" y2="128" stroke="#4fd6be" stroke-width=".5" opacity=".35"/><line x1="128" y1="128" x2="168" y2="118" stroke="#4fd6be" stroke-width=".5" opacity=".35"/><line x1="128" y1="128" x2="100" y2="120" stroke="#4fd6be" stroke-width=".5" opacity=".35"/><line x1="100" y1="120" x2="72" y2="108" stroke="#4fd6be" stroke-width=".5" opacity=".35"/><line x1="72" y1="108" x2="44" y2="92" stroke="#4fd6be" stroke-width=".5" opacity=".35"/>
+<circle cx="192" cy="148" r="1.5" fill="#7eb0c8" opacity=".7"/><circle cx="208" cy="170" r="1.4" fill="#7eb0c8" opacity=".6"/><circle cx="190" cy="182" r="1.3" fill="#7eb0c8" opacity=".55"/><circle cx="148" cy="186" r="1.4" fill="#7eb0c8" opacity=".6"/><circle cx="138" cy="178" r="1.2" fill="#7eb0c8" opacity=".5"/><circle cx="108" cy="172" r="1.3" fill="#7eb0c8" opacity=".55"/><circle cx="96" cy="152" r="1.2" fill="#7eb0c8" opacity=".5"/>
+<line x1="168" y1="162" x2="192" y2="148" stroke="#4fd6be" stroke-width=".35" opacity=".2"/><line x1="192" y1="148" x2="208" y2="170" stroke="#4fd6be" stroke-width=".35" opacity=".2"/><line x1="208" y1="170" x2="190" y2="182" stroke="#4fd6be" stroke-width=".35" opacity=".2"/><line x1="190" y1="182" x2="148" y2="186" stroke="#4fd6be" stroke-width=".35" opacity=".2"/><line x1="128" y1="162" x2="108" y2="172" stroke="#4fd6be" stroke-width=".35" opacity=".2"/><line x1="108" y1="172" x2="96" y2="152" stroke="#4fd6be" stroke-width=".35" opacity=".2"/><line x1="148" y1="186" x2="138" y2="178" stroke="#4fd6be" stroke-width=".35" opacity=".2"/>
+<circle cx="168" cy="118" r="8" fill="#4fd6be" opacity=".04"/><circle cx="100" cy="120" r="7" fill="#4fd6be" opacity=".035"/>
+</g>
+
+<!-- Title -->
+<text x="480" y="130" text-anchor="middle" font-family="'Inter','Anthropic Sans',system-ui,sans-serif" font-size="12" font-weight="400" fill="#4fd6be" letter-spacing="3.5" opacity=".7">NAVIGATOR OF KUBERNETES SEAS</text>
+
+<!-- Waves -->
+<g style="animation:ks-wave2 9s linear infinite" opacity=".4"><path d="M0,258Q38,250 76,258T152,258Q190,266 228,258T304,258Q342,250 380,258T456,258Q494,266 532,258T608,258Q646,250 684,258T760,258Q798,266 836,258T912,258Q950,250 988,258T1064,258Q1102,266 1140,258T1216,258Q1254,250 1292,258T1360,258L1360,276L0,276Z" fill="url(#ks-wf2)"/></g>
+<g style="animation:ks-wave1 7s linear infinite"><path d="M0,260Q44,252 88,260T176,260Q220,268 264,260T352,260Q396,252 440,260T528,260Q572,268 616,260T704,260Q748,252 792,260T880,260Q924,268 968,260T1056,260Q1100,252 1144,260T1232,260Q1276,268 1320,260T1360,260L1360,278L0,278Z" fill="url(#ks-wf1)"/></g>
+
+<!-- Boat -->
+<g style="animation:ks-boat-bob 5s ease-in-out infinite">
+<circle cx="288" cy="168" r="8" fill="#ffcc44" opacity=".05"/><circle cx="288" cy="168" r="3" fill="#ffcc44" opacity=".12"/><circle cx="288" cy="168" r="1.2" fill="#ffe080" opacity=".5"/>
+<polygon points="288,168 303,173 288,178" fill="#cc4444" opacity=".7"/>
+<line x1="288" y1="168" x2="288" y2="245" stroke="#94a3b8" stroke-width="1.8" stroke-linecap="round" opacity=".8"/>
+<rect x="281" y="168" width="14" height="2.5" rx="1" fill="#94a3b8" opacity=".4"/>
+<line x1="288" y1="215" x2="322" y2="220" stroke="#94a3b8" stroke-width="1" stroke-linecap="round" opacity=".6"/>
+<polygon points="290,172 290,242 322,220" fill="#e2e8f0" opacity=".1" stroke="#94a3b8" stroke-width=".5"/>
+<polygon points="286,175 286,242 258,228" fill="#e2e8f0" opacity=".07" stroke="#94a3b8" stroke-width=".4"/>
+<path d="M240,250 L240,243 L280,238 L315,238 L325,243 L335,250 L328,256 L310,260 L260,260 L248,256Z" fill="#5a4030" stroke="#94a3b8" stroke-width=".8"/>
+<path d="M240,243 L225,248 L240,250" fill="#4a3520" stroke="#94a3b8" stroke-width=".8"/>
+<path d="M335,250 L335,240 L325,243" fill="#4a3520" stroke="#94a3b8" stroke-width=".6"/>
+<line x1="240" y1="243" x2="325" y2="243" stroke="#94a3b8" stroke-width=".4" opacity=".4"/>
+<path d="M232,249 Q280,246 328,249" fill="none" stroke="#94a3b8" stroke-width=".3" opacity=".3"/>
+<path d="M246,255 Q280,257 320,255" fill="none" stroke="#94a3b8" stroke-width=".3" opacity=".25"/>
+<rect x="300" y="236" width="20" height="7" rx="1" fill="#4a3520" stroke="#94a3b8" stroke-width=".5"/>
+<rect x="302" y="237" width="3" height="4" rx=".5" fill="#4fd6be" opacity=".15"/><rect x="307" y="237" width="3" height="4" rx=".5" fill="#4fd6be" opacity=".12"/>
+<circle cx="258" cy="248" r="2.8" fill="#4fd6be" opacity=".08"/><circle cx="258" cy="248" r="2.8" fill="none" stroke="#4fd6be" stroke-width=".7" opacity=".45"/>
+<circle cx="270" cy="248" r="2.8" fill="#4fd6be" opacity=".08"/><circle cx="270" cy="248" r="2.8" fill="none" stroke="#4fd6be" stroke-width=".7" opacity=".45"/>
+<circle cx="282" cy="248" r="2.8" fill="#4fd6be" opacity=".08"/><circle cx="282" cy="248" r="2.8" fill="none" stroke="#4fd6be" stroke-width=".7" opacity=".45"/>
+<ellipse cx="280" cy="264" rx="52" ry="4" fill="#4fd6be" opacity=".03"/>
+</g>
+
+<!-- Underwater -->
+<g clip-path="url(#ks-underwater)">
+<circle cx="85" cy="330" r="1.4" fill="#4fd6be" style="animation:ks-drift-up 4s ease infinite"/><circle cx="395" cy="308" r="1.2" fill="#4fd6be" style="animation:ks-drift-up 3.5s ease infinite 2s"/><circle cx="555" cy="378" r=".9" fill="#4fd6be" style="animation:ks-drift-up 6s ease infinite .5s"/><circle cx="145" cy="398" r="1.1" fill="#4fd6be" style="animation:ks-drift-up 4.5s ease infinite 1.5s"/><circle cx="615" cy="318" r="1" fill="#4fd6be" style="animation:ks-drift-up 5.5s ease infinite 3s"/><circle cx="325" cy="408" r=".8" fill="#4fd6be" style="animation:ks-drift-up 4s ease infinite 2.5s"/><circle cx="475" cy="368" r="1.1" fill="#4fd6be" style="animation:ks-drift-up 4.8s ease infinite .8s"/><circle cx="240" cy="350" r="1" fill="#4fd6be" style="animation:ks-drift-up 5s ease infinite 1s"/>
+
+<!-- Mesh network -->
+<line x1="110" y1="330" x2="205" y2="350" stroke="#4fd6be" stroke-width=".6" style="animation:ks-pulse-line 3s ease infinite 0s"/><line x1="110" y1="330" x2="340" y2="310" stroke="#4fd6be" stroke-width=".5" style="animation:ks-pulse-line 3.5s ease infinite .3s"/><line x1="110" y1="330" x2="475" y2="340" stroke="#4fd6be" stroke-width=".4" style="animation:ks-pulse-line 4s ease infinite .6s"/><line x1="110" y1="330" x2="595" y2="305" stroke="#4fd6be" stroke-width=".35" style="animation:ks-pulse-line 4.5s ease infinite .9s"/><line x1="255" y1="350" x2="340" y2="310" stroke="#4fd6be" stroke-width=".6" style="animation:ks-pulse-line 3s ease infinite .4s"/><line x1="255" y1="350" x2="475" y2="340" stroke="#4fd6be" stroke-width=".5" style="animation:ks-pulse-line 3.5s ease infinite .7s"/><line x1="255" y1="350" x2="595" y2="305" stroke="#4fd6be" stroke-width=".4" style="animation:ks-pulse-line 4s ease infinite 1s"/><line x1="365" y1="310" x2="475" y2="340" stroke="#4fd6be" stroke-width=".6" style="animation:ks-pulse-line 3s ease infinite 1.2s"/><line x1="365" y1="310" x2="595" y2="305" stroke="#4fd6be" stroke-width=".5" style="animation:ks-pulse-line 3.5s ease infinite 1.5s"/><line x1="500" y1="340" x2="595" y2="305" stroke="#4fd6be" stroke-width=".6" style="animation:ks-pulse-line 3s ease infinite 1.8s"/>
+
+<!-- Racks -->
+<g opacity=".35">
+<rect x="60" y="300" width="50" height="68" rx="2" fill="#0b1026" stroke="#1e4a5e" stroke-width=".7"/><line x1="65" y1="310" x2="105" y2="310" stroke="#1e4a5e" stroke-width=".25"/><line x1="65" y1="318" x2="105" y2="318" stroke="#1e4a5e" stroke-width=".25"/><line x1="65" y1="326" x2="105" y2="326" stroke="#1e4a5e" stroke-width=".25"/><line x1="65" y1="334" x2="105" y2="334" stroke="#1e4a5e" stroke-width=".25"/><line x1="65" y1="342" x2="105" y2="342" stroke="#1e4a5e" stroke-width=".25"/><line x1="65" y1="350" x2="105" y2="350" stroke="#1e4a5e" stroke-width=".25"/><line x1="65" y1="358" x2="105" y2="358" stroke="#1e4a5e" stroke-width=".25"/><circle cx="103" cy="314" r="1.4" fill="#4fd6be" style="animation:ks-twinkle 2s ease infinite"/><circle cx="103" cy="322" r="1.4" fill="#4fd6be" style="animation:ks-twinkle 2s ease infinite .3s"/><circle cx="103" cy="338" r="1.4" fill="#38a89a" style="animation:ks-twinkle 2.5s ease infinite .6s"/><circle cx="103" cy="354" r="1.4" fill="#4fd6be" style="animation:ks-twinkle 2.2s ease infinite 1s"/>
+</g>
+<g opacity=".35">
+<rect x="205" y="320" width="50" height="68" rx="2" fill="#0b1026" stroke="#1e4a5e" stroke-width=".7"/><line x1="210" y1="330" x2="250" y2="330" stroke="#1e4a5e" stroke-width=".25"/><line x1="210" y1="338" x2="250" y2="338" stroke="#1e4a5e" stroke-width=".25"/><line x1="210" y1="346" x2="250" y2="346" stroke="#1e4a5e" stroke-width=".25"/><line x1="210" y1="354" x2="250" y2="354" stroke="#1e4a5e" stroke-width=".25"/><line x1="210" y1="362" x2="250" y2="362" stroke="#1e4a5e" stroke-width=".25"/><line x1="210" y1="370" x2="250" y2="370" stroke="#1e4a5e" stroke-width=".25"/><line x1="210" y1="378" x2="250" y2="378" stroke="#1e4a5e" stroke-width=".25"/><circle cx="248" cy="334" r="1.4" fill="#4fd6be" style="animation:ks-twinkle 1.8s ease infinite .2s"/><circle cx="248" cy="350" r="1.4" fill="#38a89a" style="animation:ks-twinkle 2.2s ease infinite .8s"/><circle cx="248" cy="342" r="1.4" fill="#4fd6be" style="animation:ks-twinkle 2.1s ease infinite 1.2s"/><circle cx="248" cy="374" r="1.4" fill="#4fd6be" style="animation:ks-twinkle 1.9s ease infinite .5s"/>
+</g>
+<g opacity=".35">
+<rect x="315" y="280" width="50" height="68" rx="2" fill="#0b1026" stroke="#1e4a5e" stroke-width=".7"/><line x1="320" y1="290" x2="360" y2="290" stroke="#1e4a5e" stroke-width=".25"/><line x1="320" y1="298" x2="360" y2="298" stroke="#1e4a5e" stroke-width=".25"/><line x1="320" y1="306" x2="360" y2="306" stroke="#1e4a5e" stroke-width=".25"/><line x1="320" y1="314" x2="360" y2="314" stroke="#1e4a5e" stroke-width=".25"/><line x1="320" y1="322" x2="360" y2="322" stroke="#1e4a5e" stroke-width=".25"/><line x1="320" y1="330" x2="360" y2="330" stroke="#1e4a5e" stroke-width=".25"/><line x1="320" y1="338" x2="360" y2="338" stroke="#1e4a5e" stroke-width=".25"/><circle cx="358" cy="294" r="1.4" fill="#4fd6be" style="animation:ks-twinkle 2.1s ease infinite .4s"/><circle cx="358" cy="310" r="1.4" fill="#4fd6be" style="animation:ks-twinkle 1.9s ease infinite 1s"/><circle cx="358" cy="326" r="1.4" fill="#38a89a" style="animation:ks-twinkle 2.4s ease infinite .1s"/><circle cx="358" cy="334" r="1.4" fill="#4fd6be" style="animation:ks-twinkle 2s ease infinite 1.5s"/>
+</g>
+<g opacity=".35">
+<rect x="450" y="310" width="50" height="68" rx="2" fill="#0b1026" stroke="#1e4a5e" stroke-width=".7"/><line x1="455" y1="320" x2="495" y2="320" stroke="#1e4a5e" stroke-width=".25"/><line x1="455" y1="328" x2="495" y2="328" stroke="#1e4a5e" stroke-width=".25"/><line x1="455" y1="336" x2="495" y2="336" stroke="#1e4a5e" stroke-width=".25"/><line x1="455" y1="344" x2="495" y2="344" stroke="#1e4a5e" stroke-width=".25"/><line x1="455" y1="352" x2="495" y2="352" stroke="#1e4a5e" stroke-width=".25"/><line x1="455" y1="360" x2="495" y2="360" stroke="#1e4a5e" stroke-width=".25"/><line x1="455" y1="368" x2="495" y2="368" stroke="#1e4a5e" stroke-width=".25"/><circle cx="493" cy="324" r="1.4" fill="#4fd6be" style="animation:ks-twinkle 2s ease infinite .5s"/><circle cx="493" cy="340" r="1.4" fill="#38a89a" style="animation:ks-twinkle 2.3s ease infinite .9s"/><circle cx="493" cy="356" r="1.4" fill="#4fd6be" style="animation:ks-twinkle 1.8s ease infinite 1.4s"/><circle cx="493" cy="364" r="1.4" fill="#4fd6be" style="animation:ks-twinkle 2.1s ease infinite .3s"/>
+</g>
+<g opacity=".35">
+<rect x="570" y="275" width="50" height="68" rx="2" fill="#0b1026" stroke="#1e4a5e" stroke-width=".7"/><line x1="575" y1="285" x2="615" y2="285" stroke="#1e4a5e" stroke-width=".25"/><line x1="575" y1="293" x2="615" y2="293" stroke="#1e4a5e" stroke-width=".25"/><line x1="575" y1="301" x2="615" y2="301" stroke="#1e4a5e" stroke-width=".25"/><line x1="575" y1="309" x2="615" y2="309" stroke="#1e4a5e" stroke-width=".25"/><line x1="575" y1="317" x2="615" y2="317" stroke="#1e4a5e" stroke-width=".25"/><line x1="575" y1="325" x2="615" y2="325" stroke="#1e4a5e" stroke-width=".25"/><line x1="575" y1="333" x2="615" y2="333" stroke="#1e4a5e" stroke-width=".25"/><circle cx="613" cy="289" r="1.4" fill="#4fd6be" style="animation:ks-twinkle 2.1s ease infinite .7s"/><circle cx="613" cy="305" r="1.4" fill="#4fd6be" style="animation:ks-twinkle 1.9s ease infinite 1.1s"/><circle cx="613" cy="321" r="1.4" fill="#38a89a" style="animation:ks-twinkle 2.4s ease infinite .2s"/><circle cx="613" cy="329" r="1.4" fill="#4fd6be" style="animation:ks-twinkle 2s ease infinite 1.6s"/>
+</g>
+
+<!-- Sonar -->
+<circle cx="85" cy="334" r="4" fill="none" stroke="#4fd6be" stroke-width=".4" style="animation:ks-sonar 3s ease-out infinite"/><circle cx="230" cy="354" r="4" fill="none" stroke="#4fd6be" stroke-width=".4" style="animation:ks-sonar 3s ease-out infinite .6s"/><circle cx="340" cy="314" r="4" fill="none" stroke="#4fd6be" stroke-width=".4" style="animation:ks-sonar 3s ease-out infinite 1.2s"/><circle cx="475" cy="344" r="4" fill="none" stroke="#4fd6be" stroke-width=".4" style="animation:ks-sonar 3s ease-out infinite 1.8s"/><circle cx="595" cy="309" r="4" fill="none" stroke="#4fd6be" stroke-width=".4" style="animation:ks-sonar 3s ease-out infinite 2.4s"/>
+
+<!-- Fish -->
+<g style="animation:ks-swim-left 16s linear infinite"><g style="animation:ks-wiggle 1.2s ease-in-out infinite"><path d="M0,275 Q12,265 28,275 Q12,285 0,275Z" fill="#4fd6be" opacity=".45"/><path d="M-12,275 L0,268 L0,282Z" fill="#4fd6be" opacity=".35"/><circle cx="22" cy="272.5" r="1.4" fill="#0b1026"/></g></g>
+<g style="animation:ks-swim-left 22s linear infinite;animation-delay:5s"><g style="animation:ks-wiggle 1s ease-in-out infinite .2s"><path d="M0,400 Q9,393 20,400 Q9,407 0,400Z" fill="#d4a040" opacity=".4"/><path d="M-9,400 L0,395 L0,405Z" fill="#d4a040" opacity=".3"/><circle cx="16" cy="398" r="1.1" fill="#0b1026"/></g></g>
+<g style="animation:ks-swim-right 19s linear infinite;animation-delay:2s"><g style="animation:ks-wiggle 1.1s ease-in-out infinite .5s"><path d="M0,390 Q-10,383 -24,390 Q-10,397 0,390Z" fill="#e07858" opacity=".4"/><path d="M10,390 L0,385 L0,395Z" fill="#e07858" opacity=".3"/><circle cx="-19" cy="388" r="1.2" fill="#0b1026"/></g></g>
+<g style="animation:ks-swim-left 26s linear infinite;animation-delay:10s"><g style="animation:ks-wiggle 1.3s ease-in-out infinite .8s"><path d="M0,430 Q7,425 16,430 Q7,435 0,430Z" fill="#9a7ad8" opacity=".3"/><path d="M-7,430 L0,426.5 L0,433.5Z" fill="#9a7ad8" opacity=".22"/><circle cx="12" cy="428.5" r=".9" fill="#0b1026"/></g></g>
+<g style="animation:ks-swim-right 24s linear infinite;animation-delay:8s"><g style="animation:ks-wiggle 1s ease-in-out infinite .3s"><path d="M0,415 Q-6,411 -14,415 Q-6,419 0,415Z" fill="#68b8e8" opacity=".28"/><path d="M6,415 L0,412 L0,418Z" fill="#68b8e8" opacity=".2"/><circle cx="-10" cy="413.5" r=".7" fill="#0b1026"/></g></g>
+
+<rect y="430" width="680" height="30" fill="url(#ks-deep)" opacity=".6"/>
+</g>
+</svg>
+</div>
