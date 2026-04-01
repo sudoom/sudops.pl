@@ -98,7 +98,7 @@ EC 2/1 doubles usable space but has no recovery headroom on exactly 3 nodes. If 
 | Phase 2 (5 nodes) | EC 3/2 | 80+ TB | ~48 TB |
 
 <Callout title="EC migration" variant="warning">
-  EC profiles are immutable — can't change after pool creation. EC 2/1 → EC 3/2 requires creating a new pool and migrating data. CephFS supports multi-pool layouts for this; RBD has live migration. Not trivial, but documented.
+  EC profiles can't be changed — can't change after pool creation. EC 2/1 → EC 3/2 requires creating a new pool and migrating data. CephFS supports multi-pool layouts for this; RBD has live migration. Not trivial, but documented.
 </Callout>
 
 ![Ceph pool architecture — fast and slow pools with daemon placement](./post04cephpools.png)

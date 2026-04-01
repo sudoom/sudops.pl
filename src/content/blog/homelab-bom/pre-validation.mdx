@@ -33,7 +33,7 @@ The ThinkCentre was the first choice on paper — newer CPU, same form factor. B
 
 ### Why i7-11700 (11th gen), not 12th gen
 
-The 12th gen i7-12700 uses Intel's hybrid architecture — 8 performance cores + 4 efficiency cores. The P-core / E-core split doesn't map well to server workloads. The Linux scheduler needs to be aware of core asymmetry, and Ceph OSD threads landing on E-cores would perform differently than on P-cores. Not a dealbreaker, but an unnecessary complication for a platform that runs 24/7 with consistent workloads.
+The 12th gen i7-12700 uses Intel's hybrid architecture — 8 performance cores + 4 efficiency cores. The P-core / E-core split doesn't fit server workloads well. The Linux scheduler needs to be aware of core asymmetry, and Ceph OSD threads landing on E-cores would perform differently than on P-cores. Not a dealbreaker, but an unnecessary complication for a platform that runs 24/7 with consistent workloads.
 
 The i7-11700 is a traditional 8C/16T design — all cores identical, predictable performance. For server workloads, consistency beats theoretical peak throughput.
 
@@ -52,7 +52,7 @@ The validation node came from the seller with RAM and NVMe already installed:
 
 ## NIC: Intel X710-DA2
 
-The design requires a 10 Gbps NIC with SFP+ ports. The Intel X710-DA2 is the standard choice — dual SFP+ 10GbE, `i40e` driver, and listed on the [Red Hat Ecosystem Catalog](https://catalog.redhat.com/en/hardware/detail/236147) as certified hardware. For a platform built on SCOS (same kernel and driver stack as RHEL), picking a Red Hat certified NIC eliminates driver compatibility guesswork.
+The design requires a 10 Gbps NIC with SFP+ ports. The Intel X710-DA2 is the standard choice — dual SFP+ 10GbE, `i40e` driver, and listed on the [Red Hat Ecosystem Catalog](https://catalog.redhat.com/en/hardware/detail/236147) as certified hardware. For a platform built on SCOS (same kernel and driver stack as RHEL), picking a Red Hat certified NIC removes driver compatibility guesswork.
 
 | Spec | Value |
 |------|-------|
