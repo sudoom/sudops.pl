@@ -53,6 +53,25 @@ Content schemas are defined in `src/content.config.ts`.
 - Theme colors defined as CSS custom properties in OKLCH color space
 - Light/dark mode toggled via `data-theme` attribute on `<html>`
 
+### Blog Structure
+
+The blog is a homelab series. Posts use a parent/subpost pattern where topics with multiple parts get a parent `index.mdx` (overview + callout listing subposts) and individual subpost `.mdx` files with `order` frontmatter:
+
+- `homelab-why/` — Standalone post (why this project)
+- `homelab-design/` — Parent + subposts: `compute.mdx`, `network.mdx`, `storage.mdx`
+- `homelab-bom/` — Parent + subposts: `pre-validation.mdx`, post-SNO *(future)*
+- `homelab-network-impl/` — Parent + subposts: `phase0.mdx`, post-SNO *(future)*
+- `homelab-validation/` — Parent + subposts: `hardware.mdx`, SNO *(future)*
+
+When converting raw drafts to MDX:
+- Strip social media drafts (LinkedIn/Slack/Reddit) from the end
+- Convert blockquotes/notes to `<Callout>` components with appropriate variants
+- Use ` ```routeros ` for MikroTik/RouterOS config blocks (custom TextMate grammar in `src/grammars/`), `bash` for pure shell commands, plain ` ``` ` for terminal output with prompts
+- Images go in the same directory as the post, referenced with `./filename.png`
+- Use first person ("I"), never "we" — this is a personal blog
+- Keep prose tight and conversational. Avoid textbook-style explanations — assume the reader has context. If something can be said in one sentence, don't use three.
+- Prefer simple words over fancy ones (e.g. "leftovers" not "remnants", "locked down" not "walled garden", "can't be changed" not "immutable", "removes" not "eliminates")
+
 ### Raw Blog Post Drafts
 
 Raw/unformatted post drafts are stored in `posts/*.md` (gitignored). These need to be formatted (proper frontmatter, MDX syntax, callouts, etc.) and moved to `src/content/blog/` before they go live.

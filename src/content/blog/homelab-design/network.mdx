@@ -143,7 +143,7 @@ Not every VLAN should talk to every other VLAN:
   - **Frontnet → everything:** Allowed. Management network has full access.
 </Callout>
 
-The key principle: Backnet is a walled garden. No traffic in, no traffic out, except between Ceph OSDs and monitors on VLAN 10. No exceptions.
+The key principle: Backnet is locked down. No traffic in, no traffic out, except between Ceph OSDs and monitors on VLAN 10. No exceptions.
 
 ## What's deferred
 
