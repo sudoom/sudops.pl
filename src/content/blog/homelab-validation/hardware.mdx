@@ -9,9 +9,9 @@ order: 1
 
 import Callout from '@/components/Callout.astro'
 
-You don't install a platform on hardware you haven't tested. That sounds obvious, but the homelab community is full of "I just installed Proxmox and it worked" posts that skip the part where you verify that your NIC actually negotiates at the right PCIe width, your boot SSD isn't already worn out, and your three storage tiers can sustain concurrent I/O without bus conflicts.
+I don't install a platform on hardware I haven't tested. The homelab community is full of "I just installed Proxmox and it worked" posts that skip the part where you check whether the NIC actually negotiates at the right PCIe width, the boot SSD isn't already worn out, and the storage tiers can handle concurrent I/O without bus conflicts.
 
-This post covers hardware pre-validation using a CentOS Stream 10 live boot on the Dell OptiPlex 5090 SFF. The goal is a repeatable, node-agnostic checklist that proves every component before OKD touches the disk.
+CentOS Stream 10 live boot on the Dell OptiPlex 5090 SFF. The goal: a repeatable, node-agnostic checklist that proves every component before OKD touches the disk.
 
 ## Why CentOS Stream 10?
 
@@ -36,7 +36,7 @@ sudo su
 dnf install -y smartmontools fio iperf mstflint pciutils lsscsi nvme-cli ethtool
 ```
 
-Everything needed for the full checklist installs in under a minute. The live environment runs entirely from RAM — nothing touches the disks until you explicitly tell it to.
+Everything installs in under a minute. The live environment runs entirely from RAM — nothing touches the disks until you tell it to.
 
 ## Drive detection — all three tiers simultaneously
 
@@ -90,7 +90,7 @@ SMART overall-health self-assessment test result: PASSED
 
 ![Intel D3-S3610 SMART data — PASSED, zero reallocated sectors, 34,600 hours](./post06smartssd.png)
 
-PASSED. Zero reallocated sectors. 34,600 power-on hours — that's about 4 years of continuous operation, typical for a decommissioned enterprise drive. The Media_Wearout_Indicator at 0 with normalized 100/100 confirms minimal MLC wear. This drive has plenty of life left for etcd.
+PASSED. Zero reallocated sectors. 34,600 power-on hours — about 4 years of continuous operation, typical for a decommissioned enterprise drive. Media_Wearout_Indicator at 0 with normalized 100/100 means minimal MLC wear. Plenty of life left for etcd.
 
 **PNY CS1030 (NVMe, test only):**
 
@@ -123,7 +123,7 @@ PASSED. 48,809 hours (~5.5 years), zero reallocated sectors, zero pending sector
 
 ## Concurrent I/O — the real test
 
-Individual drive tests don't catch bus sharing conflicts. The real question: can all three drives sustain simultaneous reads through the PCH without errors?
+Individual drive tests don't catch bus conflicts. The real question: can all three drives sustain simultaneous reads through the PCH without errors?
 
 ```bash
 fio --name=ssdread --filename=$BOOT_SSD --rw=read --bs=1M --size=1G \
@@ -145,33 +145,33 @@ Disk stats (read/write):
   sda:     ios=6399/0   (WDC HDD — saturated)
 ```
 
-No bus conflicts, no I/O errors in `dmesg`. The Q570 chipset handles all three tiers without contention.
+No bus conflicts, no I/O errors in `dmesg`. The Q570 chipset handles all three tiers without issues.
 
 ## The NIC journey: three cards, three problems
 
 ### Intel X710-DA2 — POST hang
 
-The Intel X710-DA2 was the first choice — dual SFP+ 10GbE, `i40e` driver, and [Red Hat Ecosystem Catalog certified](https://catalog.redhat.com/en/hardware/detail/236147). For a platform running SCOS (same kernel as RHEL), a Red Hat certified NIC seemed like the safe bet.
+The Intel X710-DA2 was the first choice — dual SFP+ 10GbE, `i40e` driver, [Red Hat Ecosystem Catalog certified](https://catalog.redhat.com/en/hardware/detail/236147). For a platform running SCOS (same kernel as RHEL), a Red Hat certified NIC seemed like the safe bet.
 
 It wasn't.
 
-Installed the X710 in the PCIe x16 slot, connected a DAC cable to the CRS317, powered on. The system hung at POST — frozen on the Dell splash screen. No BIOS, no boot menu, nothing. JetKVM showed a static Dell logo indefinitely.
+I installed the X710 in the PCIe x16 slot, connected a DAC cable to the CRS317, powered on. The system hung at POST — frozen on the Dell splash screen. No BIOS, no boot menu, nothing. JetKVM showed a static Dell logo forever.
 
-**Attempt 1: Disable Option ROM.** The X710 has a PXE/UEFI Option ROM that executes during POST. Pulled the NIC, booted into BIOS, disabled Option ROM for the PCIe slot, shut down, reinstalled. Same hang.
+**Attempt 1: Disable Option ROM.** The X710 has a PXE/UEFI Option ROM that runs during POST. Pulled the NIC, booted into BIOS, disabled Option ROM for the PCIe slot, shut down, reinstalled. Same hang.
 
-**Attempt 2: Every BIOS combination.** Disabled PXE boot, toggled UEFI network stack, changed PCIe slot configuration. Nothing. With the X710 installed, the system wouldn't POST. Without it, perfectly fine.
+**Attempt 2: Every BIOS combination.** Disabled PXE boot, toggled UEFI network stack, changed PCIe slot config. Nothing. With the X710 installed, the system wouldn't POST. Without it, fine.
 
 **Attempt 3: Reseat.** Only one usable PCIe slot in the 5090 SFF. Reseated the card, confirmed full engagement. Same result.
 
-Searching turned up scattered forum reports of Intel X710 + Dell OptiPlex compatibility issues — PCIe lane negotiation conflicts with the Dell BIOS/firmware. No official Dell or Intel documentation acknowledges it. Returned the X710.
+Scattered forum reports of Intel X710 + Dell OptiPlex compatibility issues — PCIe lane negotiation conflicts with the Dell BIOS/firmware. No official Dell or Intel docs acknowledge it. Returned the X710.
 
 ### Mellanox ConnectX-3 CX312A — driver dropped from SCOS 10
 
-Second attempt: Mellanox ConnectX-3 CX312A. Dual SFP+ 10GbE, `mlx4_core` driver. Cheaper and widely available used.
+Second attempt: Mellanox ConnectX-3 CX312A. Dual SFP+ 10GbE, `mlx4_core` driver. Cheaper, widely available used.
 
-I first tested it by booting an RHCOS live image (from an earlier OpenShift evaluation). PCIe detected fine, both ports visible, link up. Looked good.
+I first tested it on an RHCOS live image (from an earlier OpenShift evaluation). PCIe detected fine, both ports visible, link up. Looked good.
 
-Then I switched the project from OCP to OKD. OKD 4.20 runs SCOS 10, not RHCOS. Booted CentOS Stream 10 live (same kernel as SCOS 10) — `lspci` showed the card, PCIe negotiation was fine. But `ip link` showed no Mellanox interfaces. No `mlx4_core` module loaded.
+Then I switched the project from OCP to OKD. OKD 4.20 runs SCOS 10, not RHCOS. Booted CentOS Stream 10 live (same kernel as SCOS 10) — `lspci` showed the card, PCIe negotiation fine. But `ip link` showed no Mellanox interfaces. No `mlx4_core` module loaded.
 
 <Callout title="Driver removed upstream" variant="danger">
   `mlx4_core` is not included in SCOS 10 / CentOS Stream 10 kernel (6.12). The ConnectX-3 uses the mlx4 driver family, which has been deprecated upstream. RHCOS (RHEL 9 based) still carried it. SCOS 10 (RHEL 10 lineage) does not. The hardware works — the driver simply isn't there anymore.
@@ -181,9 +181,9 @@ Returned the ConnectX-3.
 
 ### Mellanox ConnectX-4 Lx CX4121C — finally
 
-Third attempt: Mellanox ConnectX-4 Lx CX4121C (Dell P/N 20NJD). Dual SFP28 25GbE, `mlx5_core` driver. Dell OEM card — no chassis compatibility risk. `mlx5_core` is the current Mellanox driver, actively maintained, included in every modern kernel.
+Third attempt: Mellanox ConnectX-4 Lx CX4121C (Dell P/N 20NJD). Dual SFP28 25GbE, `mlx5_core` driver. Dell OEM card — no chassis compatibility risk. `mlx5_core` is the current Mellanox driver, actively maintained, ships in every modern kernel.
 
-Installed it. System booted normally. Both ports detected. Everything worked.
+I installed it. System booted normally. Both ports detected. Everything worked.
 
 | | Intel X710-DA2 | Mellanox CX312A | Mellanox CX4121C (Dell 20NJD) |
 |---|---|---|---|
@@ -192,7 +192,7 @@ Installed it. System booted normally. Both ports detected. Everything worked.
 | Ports | 2x SFP+ 10GbE | 2x SFP+ 10GbE | 2x SFP28 25GbE |
 | Driver | i40e | mlx4_core (deprecated) | mlx5_core |
 
-Three NICs, three different failure modes: hardware incompatibility, deprecated driver, and finally — success. About a month of shipping, testing, and returning. All avoidable by checking the kernel module list against the NIC before buying — but who does that for a card that worked on the previous kernel?
+Three NICs, three different failure modes: hardware incompatibility, deprecated driver, and finally success. About a month of shipping, testing, and returning. All avoidable by checking the kernel module list against the NIC before buying — but who does that for a card that worked on the previous kernel?
 
 <Callout title="Lesson learned" variant="warning">
   This is why you buy one NIC and validate before ordering five.
@@ -221,7 +221,7 @@ mlx5_fwctl    16384  0
 
 ![mlx5 kernel modules loaded](./post06lsmodmlx5.png)
 
-The kernel dmesg confirms both ports came up during boot:
+Kernel dmesg confirms both ports came up during boot:
 
 ```
 mlx5_core 0000:01:00.0 enp1s0f0np0: Link up
@@ -254,10 +254,10 @@ LnkSta: Speed 8GT/s, Width x8
 
 ![PCIe LnkCap and LnkSta both showing 8GT/s x8 — no downgrade](./post06pcielanes.png)
 
-Full width. Speed 8GT/s (PCIe 3.0), Width x8, no "(downgraded)" warnings. That's ~8 GB/s of PCIe bandwidth — more than enough for dual 25 GbE (which maxes out at ~6.25 GB/s aggregate).
+Full width. 8GT/s (PCIe 3.0), x8, no "(downgraded)" warnings. That's ~8 GB/s of PCIe bandwidth — plenty for dual 25 GbE (which tops out at ~6.25 GB/s aggregate).
 
 <Callout title="If you see downgraded width" variant="warning">
-  If LnkSta shows x4 or x1, reseat the card. The SFF riser's contact pressure can be marginal. PCIe 3.0 x4 would still handle 10 GbE but would bottleneck Ceph under heavy replication load.
+  If LnkSta shows x4 or x1, reseat the card. The SFF riser's contact pressure can be tight. PCIe 3.0 x4 would still handle 10 GbE but would bottleneck Ceph under heavy replication.
 </Callout>
 
 ### Link speed and transceiver
@@ -282,7 +282,7 @@ Settings for enp1s0f0np0:
 
 ![ethtool showing 10 Gbps link speed, DAC detected, and MikroTik XS+DA0001 transceiver details](./post06ethtoollink.png)
 
-MikroTik XS+DA0001: 25G Base-CR CA-N, 1 meter passive copper DAC. At this length, no signal integrity concerns. Port 2 shows identical results:
+MikroTik XS+DA0001: 25G Base-CR CA-N, 1 meter passive copper DAC. At this length, no signal issues. Port 2 shows identical results:
 
 ![Port 2 ethtool — same 10 Gbps, same DAC cable](./post06ethtoolport2.png)
 
@@ -302,11 +302,11 @@ Description:     Mellanox 25GBE 2P ConnectX-4 Lx Adapter
 
 ![Firmware version and mstconfig device identity — Dell OEM ConnectX-4 Lx](./post06firmware.png)
 
-Firmware 14.32.2004 — the Dell OEM build. Current, no upgrade needed. The Dell part number (0Z0NJD, sold as Dell 20NJD) confirms this is the Dell-branded CX4121C.
+Firmware 14.32.2004 — Dell OEM build. Current, no upgrade needed. The part number (0Z0NJD, sold as Dell 20NJD) confirms this is the Dell-branded CX4121C.
 
 ## Onboard NIC and basic connectivity
 
-The Intel onboard NIC (`enp0s31f6`) handles management traffic and OKD cluster networking:
+The onboard Intel NIC (`enp0s31f6`) handles management traffic and OKD cluster networking:
 
 ```
 # ethtool enp0s31f6 | grep -E "Speed|Link detected"
@@ -349,7 +349,7 @@ Size: 32 GB    Locator: DIMM2    Type: DDR4    Speed: 3200 MT/s
 
 ![dmidecode memory layout — 2 x 32 GB DDR4-3200 in DIMM1 and DIMM2](./post06dmidecode.png)
 
-2 x 32 GB DDR4-3200 in DIMM1 and DIMM2 — dual channel. DIMM3 and DIMM4 are empty, leaving room to double to 128 GB if needed.
+2 x 32 GB DDR4-3200 in DIMM1 and DIMM2 — dual channel. DIMM3 and DIMM4 empty, room to double to 128 GB if needed.
 
 ```
 # lscpu | grep -E "Model name|Socket|Core|Thread|Virtualization"
@@ -362,7 +362,7 @@ Virtualization:     VT-x
 
 ![lscpu — i7-11700, 8 cores, 16 threads, VT-x enabled](./post06lscpu.png)
 
-The `vmx` flag is present in `/proc/cpuinfo`, and DMAR/IOMMU is fully initialized:
+`vmx` flag present in `/proc/cpuinfo`, and DMAR/IOMMU fully initialized:
 
 ```
 # dmesg | grep -i -E "IOMMU|DMAR"
@@ -377,9 +377,9 @@ VT-d is working. Required for SR-IOV on Nodes 7-8 in Phase 2, but good to confir
 
 ## Throughput test — 9.41 Gbps through the switch
 
-The final validation: can the Mellanox NIC push line-rate traffic through the CRS317 switch? This isn't a loopback test — it's a real path through the switch fabric.
+The final check: can the Mellanox NIC push line-rate traffic through the CRS317? This isn't a loopback test — it's a real path through the switch fabric.
 
-The Mac mini is connected to CRS317 sfp-sfpplus12 (10 GbE RJ45). Node 4 is on sfp-sfpplus2 (10 GbE DAC). Both ports are in the switch's bridge. iperf2 with 8 parallel TCP streams, 30 seconds:
+Mac mini on CRS317 sfp-sfpplus12 (10 GbE RJ45). Node 4 on sfp-sfpplus2 (10 GbE DAC). Both ports in the switch's bridge. iperf2 with 8 parallel TCP streams, 30 seconds:
 
 **Node 4 (client):**
 
@@ -398,9 +398,9 @@ The Mac mini is connected to CRS317 sfp-sfpplus12 (10 GbE RJ45). Node 4 is on sf
 
 ![iperf client output — 9.41 Gbits/sec confirmed](./post06iperfclient.png)
 
-9.41 Gbps. That's 94% of the 10 GbE theoretical maximum — essentially line rate after TCP overhead. The CRS317's Marvell Prestera ASIC is forwarding at hardware speed.
+9.41 Gbps — 94% of the 10 GbE theoretical max. Essentially line rate after TCP overhead. The CRS317's Marvell Prestera ASIC is forwarding at wire speed.
 
-This is the path Ceph replication traffic will take in Phase 1. It works.
+This is the path Ceph replication traffic takes in Phase 1. It works.
 
 ## Kernel and driver versions (for the record)
 
@@ -422,7 +422,7 @@ version:   3.0
 
 ![Kernel version and driver module paths for traceability](./post06kernelversions.png)
 
-Record these. When SCOS 10 ships a different kernel version, you'll want to compare driver behavior.
+Worth recording. When SCOS 10 ships a different kernel version, I'll want to compare driver behavior.
 
 ## Go / no-go
 
@@ -449,4 +449,4 @@ Every check passed:
 
 ## What's next
 
-With a GO from hardware validation, the components are proven. The next post covers OKD SNO deployment on this validated hardware — including every DNS pitfall, installer gotcha, and platform-specific workaround that the official docs don't mention.
+Hardware is proven. The next post covers OKD SNO deployment on this validated machine — DNS pitfalls, installer gotchas, and platform-specific workarounds that the official docs don't mention.
