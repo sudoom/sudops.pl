@@ -21,12 +21,12 @@ const formatPLN = (v: number) =>
 export default function BomPieChart() {
   return (
     <div style={{ width: '100%', maxWidth: 500, margin: '0 auto' }}>
-      <ResponsiveContainer width="100%" height={340}>
+      <ResponsiveContainer width="100%" height={380}>
         <PieChart>
           <Pie
             data={data}
             cx="50%"
-            cy="50%"
+            cy="45%"
             innerRadius={70}
             outerRadius={120}
             dataKey="value"
