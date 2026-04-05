@@ -114,7 +114,7 @@ networking:
     - cidr: 192.168.1.0/24
 platform:
   none: {}
-pullSecret: '<your-pull-secret-json>'
+pullSecret: '{"auths":{"fake":{"auth":"aWQ6cGFzcwo="}}}'
 sshKey: 'ssh-ed25519 AAAA... okd-homelab'
 ```
 
@@ -156,7 +156,13 @@ hosts:
             next-hop-interface: enp0s31f6
 ```
 
-I built the ISO from Node 1 (the old Kubernetes node running Ubuntu) using a Fedora container. One command handles everything:
+I built the ISO from Node 1 (the old Kubernetes node running Ubuntu) using a Fedora container. Create the `install/` directory first — the installer writes into it but won't create it:
+
+```bash
+mkdir install
+```
+
+One command handles the rest:
 
 ```bash
 sudo podman run --rm -it -v $(pwd):/work -w /work fedora:latest bash -c '
@@ -215,7 +221,13 @@ The Assisted Service containers start activating. The console shows "Waiting for
 
 ## The install: what the console actually looks like
 
-With `openshift-install agent wait-for bootstrap-complete` running on Node 1, you get a split-screen view: the JetKVM console on the left showing the node's progress, and the installer output on the right showing validation status.
+From a separate terminal on Node 1, monitor the bootstrap:
+
+```bash
+./openshift-install agent wait-for bootstrap-complete --dir install --log-level=debug
+```
+
+You get a split-screen view: the JetKVM console on the left showing the node's progress, and the installer output on the right showing validation status.
 
 The host goes through several stages: discovering → insufficient (NTP sync pending) → known → preparing → installing. The NTP sync warning is transient — it resolves within a minute as the node reaches pool.ntp.org.
 
@@ -487,7 +499,7 @@ Time to order Nodes 5 and 6.
 This SNO gets wiped. Node 4 becomes the first member of a 3-node cluster in Phase 1. Before that:
 
 - Revert DNS from `sno.home.lab` to `okd.home.lab` with VIP addresses
-- Run Stage -1 pre-validation on each new node
+- Run hardware validation on each new node
 - Configure LACP bonds on the CRS317 for dual-port storage networking
 - Enable jumbo frames (MTU 9000) after bonds are stable
 - Deploy Phase 1: 3-node OKD with Rook-Ceph distributed storage
