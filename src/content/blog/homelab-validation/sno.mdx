@@ -1,0 +1,414 @@
+---
+title: 'Stage 0: OKD Single Node Validation'
+description: 'OKD 4.20 on a single Dell OptiPlex 5090 — agent-based install via JetKVM, ingress canary degradation, etcd on used enterprise SSD, and Backnet storage path validation before committing to a multi-node cluster.'
+date: 2026-04-05
+tags: ['homelab', 'okd', 'kubernetes', 'validation', 'bare-metal']
+authors: ['vd']
+order: 2
+---
+
+import Callout from '@/components/Callout.astro'
+
+Hardware is [validated](/blog/homelab-validation/hardware). Network is [configured](/blog/homelab-network-impl/phase0). Time to see if OKD actually works on this thing.
+
+This is Stage 0: a Single Node OpenShift (SNO) deployment of OKD 4.20 on Node 4. No quorum, no distributed storage, no LACP bonding. The goal is to confirm platform-level functionality — OKD bootstrap, operator health, console access, monitoring, and Backnet storage path — before committing to a 3-node cluster.
+
+<Callout title="Scope" variant="summary">
+  - **In:** OKD 4.20 SNO on Node 4, agent-based install, full operator and monitoring validation, Backnet L2/L3 path test.
+  - **Out:** Rook-Ceph (needs 3+ nodes), LACP bonding (deferred to Phase 1), production workloads.
+  - **Duration:** ~3–4 hours (install: ~1 hour, validation: ~2–3 hours).
+</Callout>
+
+## Prerequisites
+
+### Network
+
+The [Phase 0 MikroTik config](/blog/homelab-network-impl/phase0) must be deployed before the node boots. The specifics are covered there — DHCP on Frontnet, static lease for Node 4 at `192.168.1.7`, Backnet interface at `192.168.10.1/24`, inter-VLAN firewall, NAT, and VLAN filtering on both devices.
+
+### DNS
+
+For SNO with `platform: none`, the API and ingress bind directly on the node — there are no separate VIPs managed by keepalived. I pointed all OKD DNS records straight at the node IP:
+
+```routeros
+/ip dns static
+add name=api.sno.home.lab address=192.168.1.7
+add name=api-int.sno.home.lab address=192.168.1.7
+```
+
+```routeros
+/ip dns
+set allow-remote-requests=yes
+```
+
+For the wildcard `*.apps.sno.home.lab`, RouterOS uses a regex forward rule pointing to the node IP.
+
+Verify from your workstation:
+
+```bash
+dig +short api.sno.home.lab @192.168.1.1
+# 192.168.1.7
+
+dig +short test.apps.sno.home.lab @192.168.1.1
+# 192.168.1.7
+```
+
+![DNS verification — api and apps wildcard both resolving to 192.168.1.7 via router and Pi-hole](./sno-dns-verify.png)
+
+Both the router (`@192.168.1.1`) and Pi-hole (`@192.168.1.12`) return `192.168.1.7`. RouterOS evaluates its static entries before forwarding, so Pi-hole doesn't need OKD-specific records.
+
+<Callout title="If DNS fails" variant="warning">
+  Check `/ip dns static print` on the router. Records must exist and not be disabled. Also verify DNS is accepting remote queries: `/ip dns print` should show `allow-remote-requests: yes`.
+</Callout>
+
+### Pull secret and SSH key
+
+OKD uses `quay.io/okd/scos-release`. Some operators may pull from `registry.redhat.io`, so include those credentials if you have them.
+
+```bash
+ssh-keygen -t ed25519 -f ~/.ssh/okd-homelab -C "okd-homelab"
+```
+
+## Installation
+
+### install-config.yaml
+
+```yaml
+apiVersion: v1
+baseDomain: home.lab
+metadata:
+  name: sno
+compute:
+  - name: worker
+    replicas: 0          # SNO — no separate workers
+controlPlane:
+  name: master
+  replicas: 1            # Single node
+networking:
+  networkType: OVNKubernetes
+  clusterNetwork:
+    - cidr: 10.128.0.0/14
+      hostPrefix: 23
+  serviceNetwork:
+    - 172.30.0.0/16
+  machineNetwork:
+    - cidr: 192.168.1.0/24    # Frontnet
+platform:
+  none: {}
+pullSecret: '<your-pull-secret-json>'
+sshKey: '<your-ssh-public-key>'
+```
+
+<Callout title="metadata.name matters for DNS" variant="danger">
+  The `metadata.name` becomes the cluster name in all DNS records: `api.<name>.home.lab`, `*.apps.<name>.home.lab`. I initially used `name: okd` — the installer generated configs for `api.okd.home.lab`, but my router DNS pointed at `api.sno.home.lab`. The install timed out after an hour waiting for the API to initialize. The fix was trivial: either change DNS records to match, or change the config name. I changed to `name: sno` to match the existing DNS.
+</Callout>
+
+### agent-config.yaml
+
+```yaml
+apiVersion: v1beta1
+kind: AgentConfig
+metadata:
+  name: sno
+rendezvousIP: 192.168.1.7
+hosts:
+  - hostname: sno.home.lab
+    role: master
+    interfaces:
+      - name: enp0s31f6
+        macAddress: D0:8E:79:05:37:0A
+    networkConfig:
+      interfaces:
+        - name: enp0s31f6
+          type: ethernet
+          state: up
+          ipv4:
+            enabled: true
+            address:
+              - ip: 192.168.1.7
+                prefix-length: 24
+            dhcp: false
+          ipv6:
+            enabled: false
+      dns-resolver:
+        config:
+          server:
+            - 192.168.1.12
+      routes:
+        config:
+          - destination: 0.0.0.0/0
+            next-hop-address: 192.168.1.1
+            next-hop-interface: enp0s31f6
+```
+
+<Callout title="CX4121C interfaces are intentionally left out" variant="note">
+  For SNO, Frontnet (onboard NIC) handles all traffic. The Backnet interface gets configured manually post-install for L2/L3 path validation only.
+</Callout>
+
+### Generate the agent ISO
+
+I ran the installer from a Podman container on my workstation — avoids needing `nmstate` and the exact `oc` version installed locally:
+
+```bash
+sudo podman run --rm -it -v $(pwd):/work -w /work fedora:latest bash -c '
+  dnf install -y nmstate tar gzip &&
+  curl -sL https://github.com/okd-project/okd/releases/download/4.20.0-okd-scos.17/openshift-client-linux-4.20.0-okd-scos.17.tar.gz \
+    | tar xz -C /usr/local/bin &&
+  oc adm release extract --command=openshift-install \
+    quay.io/okd/scos-release:4.20.0-okd-scos.17 &&
+  cp install-config.yaml agent-config.yaml install/ &&
+  ./openshift-install agent create image --dir install --log-level=debug
+'
+```
+
+Output: `install/agent.x86_64.iso` (882 MB). The container also generates `install/auth/kubeconfig` and `install/auth/kubeadmin-password`.
+
+### Boot via JetKVM
+
+No USB drive needed. The JetKVM has built-in storage — upload the ISO, mount it as virtual CD/DVD, and select the virtual media as boot device in the Dell BIOS.
+
+![JetKVM storage — agent ISO uploaded and ready to mount](./sno-jetkvm-iso.png)
+
+![JetKVM virtual media mounted, Dell BIOS boot menu showing UEFI: JetKVM USB Emulation Device](./sno-jetkvm-boot.png)
+
+### The boot sequence
+
+The agent boots into CentOS Stream CoreOS 10, applies the Ignition config from the agent-config, and identifies the node:
+
+![SCOS 10 live boot — Ignition applied, SSH keys loaded, IP 192.168.1.7 on enp0s31f6](./sno-agent-boot.png)
+
+After the initial boot, it reboots and the rendezvous host identification kicks in:
+
+![Rendezvous host identified at 192.168.1.7](./sno-rendezvous.png)
+
+Then it waits for the assisted service container to start and validates the host:
+
+![Waiting for services — assisted service activating, cluster registration pending](./sno-waiting-services.png)
+
+### Monitor installation
+
+From a separate terminal, watch the installer progress:
+
+```bash
+./openshift-install agent wait-for bootstrap-complete --dir install --log-level=debug
+```
+
+The installer connects to the rendezvous host via SSH, runs host validations (CPU, RAM, disk, platform compatibility, DNS resolution), and starts the install:
+
+![Split screen — JetKVM console on the left, installer progress on the right showing host validations passing](./sno-install-progress.png)
+
+The host validations passed cleanly — one temporary NTP warning that self-resolved:
+
+```
+INFO Host sno.home.lab validation: Host NTP is synced
+INFO Host sno.home.lab: validation 'ntp-synced' is now fixed
+INFO Cluster is ready for install
+```
+
+Bootstrap completed in about 33 minutes:
+
+```
+INFO Host: sno.home.lab, reached installation stage Writing image to disk: 100%
+INFO Bootstrap configMap status is complete
+INFO Bootstrap is complete
+```
+
+Then `wait-for install-complete` takes over, progressing through operator initialization. This part took longer — cluster operators cycle through unavailable states as they come up one by one.
+
+<Callout title="Ingress operator timeout" variant="warning">
+  The installer timed out at 40 minutes with `Cluster operator ingress is degraded`. The ingress canary route checks were failing — the canary pod at `canary-openshift-ingress-canary.apps.sno.home.lab` was timing out. The cluster was otherwise functional. I let the installer timeout and proceeded with manual validation.
+</Callout>
+
+## Validation
+
+### Cluster version and node status
+
+```
+$ oc get clusterversion
+NAME      VERSION   AVAILABLE   PROGRESSING   SINCE   STATUS
+version             False       False         4h33m   Error while reconciling 4.20.0-okd-scos.17: the cluster operator ingress is degraded
+```
+
+The version field is empty because the ingress operator degradation prevents the cluster version from reporting as complete. But the cluster is running 4.20.0-okd-scos.17 — the reconciliation error is solely about ingress canary checks.
+
+```
+$ oc get nodes
+NAME           STATUS   ROLES                         AGE     VERSION
+sno.home.lab   Ready    control-plane,master,worker   5h10m   v1.33.5
+```
+
+Node is Ready. CentOS Stream CoreOS 10.0, kernel 6.12.0-142.el10.x86_64, cri-o 1.33.4. 16 CPUs allocatable (15.5 after system reservation), ~63 Gi memory, 88 pods running. CPU requests at 17%, memory at 19% — plenty of headroom for a single-node platform.
+
+### Cluster operators
+
+```
+$ oc get co
+NAME                                       VERSION              AVAILABLE   PROGRESSING   DEGRADED
+authentication                             4.20.0-okd-scos.17   True        False         False
+baremetal                                  4.20.0-okd-scos.17   True        False         False
+cloud-controller-manager                   4.20.0-okd-scos.17   True        False         False
+cloud-credential                           4.20.0-okd-scos.17   True        False         False
+cluster-autoscaler                         4.20.0-okd-scos.17   True        False         False
+config-operator                            4.20.0-okd-scos.17   True        False         False
+console                                    4.20.0-okd-scos.17   True        False         False
+control-plane-machine-set                  4.20.0-okd-scos.17   True        False         False
+csi-snapshot-controller                    4.20.0-okd-scos.17   True        False         False
+dns                                        4.20.0-okd-scos.17   True        False         False
+etcd                                       4.20.0-okd-scos.17   True        False         False
+image-registry                             4.20.0-okd-scos.17   True        False         False
+ingress                                    4.20.0-okd-scos.17   True        False         True
+insights                                   4.20.0-okd-scos.17   True        False         False
+kube-apiserver                             4.20.0-okd-scos.17   True        False         False
+kube-controller-manager                    4.20.0-okd-scos.17   True        False         False
+kube-scheduler                             4.20.0-okd-scos.17   True        False         False
+kube-storage-version-migrator              4.20.0-okd-scos.17   True        False         False
+machine-api                                4.20.0-okd-scos.17   True        False         False
+machine-approver                           4.20.0-okd-scos.17   True        False         False
+machine-config                             4.20.0-okd-scos.17   True        False         False
+marketplace                                4.20.0-okd-scos.17   True        False         False
+monitoring                                 4.20.0-okd-scos.17   True        False         False
+network                                    4.20.0-okd-scos.17   True        False         False
+node-tuning                                4.20.0-okd-scos.17   True        False         False
+olm                                        4.20.0-okd-scos.17   True        False         False
+openshift-apiserver                        4.20.0-okd-scos.17   True        False         False
+openshift-controller-manager               4.20.0-okd-scos.17   True        False         False
+openshift-samples                          4.20.0-okd-scos.17   True        False         False
+operator-lifecycle-manager                 4.20.0-okd-scos.17   True        False         False
+operator-lifecycle-manager-catalog         4.20.0-okd-scos.17   True        False         False
+operator-lifecycle-manager-packageserver   4.20.0-okd-scos.17   True        False         False
+service-ca                                 4.20.0-okd-scos.17   True        False         False
+storage                                    4.20.0-okd-scos.17   True        False         False
+```
+
+35 operators. All Available=True. Only ingress shows Degraded=True — the canary route check failure. The ingress router pod itself is Running and serving traffic (console works, routes resolve). The canary check is a health probe that periodically creates a test route and verifies it responds — it was timing out intermittently but never affected actual routing.
+
+<Callout title="Ingress canary degradation" variant="note">
+  The ingress operator reports Degraded=True because `CanaryChecksSucceeding=False`. This is a known pattern on SNO — the canary check creates a route to `canary-openshift-ingress-canary.apps.sno.home.lab` and expects a response within a timeout. On a single node under load from initial operator reconciliation, these checks can timeout without indicating an actual ingress problem. I accepted this as a non-blocking issue.
+</Callout>
+
+### Web console
+
+```
+$ oc whoami --show-console
+https://console-openshift-console.apps.sno.home.lab
+```
+
+![OKD web console — cluster overview showing version 4.20, single-node control plane, ClusterOperatorDegraded warning for ingress canary](./sno-console-overview.png)
+
+Console loads, login works with `kubeadmin`. The overview page shows the ingress canary warning and a `SamplesImagestreamImportFailing` warning (expected — some sample imagestreams can't pull from external registries). A cluster version update is available but not relevant for validation.
+
+### Monitoring stack
+
+```
+$ oc get pods -n openshift-monitoring
+NAME                                                     READY   STATUS    RESTARTS   AGE
+alertmanager-main-0                                      6/6     Running   0          4h42m
+cluster-monitoring-operator-5b5fc947dc-t5bbn             1/1     Running   0          5h14m
+kube-state-metrics-56d9bd74d6-t5285                      3/3     Running   0          4h53m
+metrics-server-c95bbf458-75ppk                           1/1     Running   0          4h48m
+monitoring-plugin-76646cbd85-c57fg                       1/1     Running   0          4h48m
+node-exporter-tqxcx                                      2/2     Running   0          4h53m
+openshift-state-metrics-55bc9f4655-jkfsj                 3/3     Running   0          4h53m
+prometheus-k8s-0                                         6/6     Running   0          4h42m
+prometheus-operator-769469b8d4-rsr9p                     2/2     Running   0          4h53m
+prometheus-operator-admission-webhook-6779967d8b-2hcbh   1/1     Running   0          5h5m
+telemeter-client-7489db694d-bk6bv                        3/3     Running   0          4h47m
+thanos-querier-64898d5b96-chr9k                          6/6     Running   0          4h48m
+```
+
+12 pods, all Running, zero restarts. Prometheus scraping 69 active targets.
+
+### etcd health
+
+```
+$ oc rsh -n openshift-etcd etcd-sno.home.lab etcdctl member list -w table
++------------------+---------+--------------+--------------------------+--------------------------+
+|        ID        | STATUS  |     NAME     |        PEER ADDRS        |       CLIENT ADDRS       |
++------------------+---------+--------------+--------------------------+--------------------------+
+| ba35733b2429552c | started | sno.home.lab | https://192.168.1.7:2380 | https://192.168.1.7:2379 |
++------------------+---------+--------------+--------------------------+--------------------------+
+
+$ oc rsh -n openshift-etcd etcd-sno.home.lab etcdctl endpoint health --cluster
+https://192.168.1.7:2379 is healthy: successfully committed proposal: took = 3.236162ms
+```
+
+Single member, healthy, 3.2 ms commit latency. The Intel D3-S3610 is handling etcd fine.
+
+![OKD etcd monitoring dashboard — rate ~70, ~200 active streams, memory ~238 MiB](./sno-etcd-dashboard.png)
+
+A few "apply request took too long" warnings in the etcd logs — reads hitting 200-250 ms against the 200 ms threshold:
+
+```
+{"level":"warn","msg":"apply request took too long","took":"206.573733ms","expected-duration":"200ms","prefix":"read-only range "}
+{"level":"warn","msg":"apply request took too long","took":"254.517241ms","expected-duration":"200ms","prefix":"read-only range "}
+```
+
+These are read-only range requests, not write fsyncs. They happened during initial operator reconciliation when the API server was under heavy load. No persistent fdatasync warnings, no write latency issues. The S3610 is doing its job.
+
+<Callout title="Why etcd performance matters here" variant="important">
+  etcd fsyncs on every Kubernetes API change. The Intel D3-S3610 (MLC) was chosen specifically for this workload. Persistent slow warnings here mean the boot SSD can't keep up — and it'll only get worse with a 3-node cluster writing to quorum. A few transient read slowdowns during initial reconciliation are acceptable.
+</Callout>
+
+### Backnet (VLAN 10) — storage path validation
+
+The critical pre-Phase 1 test. Prove that the CX4121C port can reach the Backnet gateway (`192.168.10.1`) through the CRS317 switch and CCR2004 router.
+
+```bash
+[core@sno ~]$ MLX_IFACE=enp1s0f0np0
+[core@sno ~]$ sudo ip addr add 192.168.10.2/24 dev $MLX_IFACE
+[core@sno ~]$ sudo ip link set $MLX_IFACE up
+[core@sno ~]$ sudo ethtool $MLX_IFACE | grep -E "Speed|Link"
+	Speed: 10000Mb/s
+	Link detected: yes
+```
+
+10 Gbps link, CX4121C on CRS317 sfp-sfpplus2 with pvid=10.
+
+```
+[core@sno ~]$ ping -c 5 -I $MLX_IFACE 192.168.10.1
+PING 192.168.10.1 (192.168.10.1) from 192.168.10.2 enp1s0f0np0: 56(84) bytes of data.
+64 bytes from 192.168.10.1: icmp_seq=1 ttl=64 time=0.153 ms
+64 bytes from 192.168.10.1: icmp_seq=2 ttl=64 time=0.118 ms
+64 bytes from 192.168.10.1: icmp_seq=3 ttl=64 time=0.084 ms
+64 bytes from 192.168.10.1: icmp_seq=4 ttl=64 time=0.122 ms
+64 bytes from 192.168.10.1: icmp_seq=5 ttl=64 time=0.109 ms
+
+--- 192.168.10.1 ping statistics ---
+5 packets transmitted, 5 received, 0% packet loss, time 4122ms
+rtt min/avg/max/mdev = 0.084/0.117/0.153/0.022 ms
+```
+
+Sub-millisecond latency, zero packet loss. The full path works: CX4121C → CRS317 (VLAN 10 untagged on sfp-sfpplus2) → trunk (VLAN 10 tagged on sfp-sfpplus1) → CCR2004 (vlan10-backnet interface at 192.168.10.1).
+
+<Callout title="This is a Phase 1 gate" variant="danger">
+  If the Backnet path doesn't work here, Ceph replication traffic won't flow in the multi-node cluster. Fix it now.
+</Callout>
+
+## Go / no-go
+
+| # | Criterion | Result |
+|---|-----------|--------|
+| 1 | Cluster version 4.20.0-okd-scos.17 running | PASS |
+| 2 | Node STATUS = Ready | PASS |
+| 3 | All 35 cluster operators Available | PASS |
+| 4 | No CrashLoopBackOff pods | PASS |
+| 5 | Web console accessible and login works | PASS |
+| 6 | Monitoring stack operational (69 Prometheus targets) | PASS |
+| 7 | etcd healthy, 3.2 ms commit latency, no persistent slow-disk warnings | PASS |
+| 8 | Backnet VLAN 10 path validated (0.117 ms avg, 0% loss) | PASS |
+
+**Known issues (non-blocking):**
+- Ingress operator Degraded=True — canary route check timeouts, actual routing works fine
+- SamplesImagestreamImportFailing — expected, some sample images can't pull from external registries
+
+**Result: GO.** OKD works on this hardware. Platform is validated.
+
+## What comes after Stage 0
+
+With a GO from SNO validation:
+
+1. **Tear down SNO** — Node 4 becomes part of the 3-node cluster. The SNO installation gets wiped.
+2. **Revert DNS** — point records back from `sno.home.lab` to the multi-node cluster name and VIP addresses.
+3. **Procure Nodes 5–6** — identical hardware (Dell OptiPlex 5090 SFF with CX4121C).
+4. **Run hardware validation on each new node** — same Stage -1 process.
+5. **Incremental network upgrades** — enable CRS317 ports for new nodes, create LACP bonds, enable jumbo frames after bonds are stable.
+6. **Deploy Phase 1** — 3-node OKD cluster with Rook-Ceph distributed storage.
