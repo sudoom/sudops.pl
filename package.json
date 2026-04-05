@@ -24,6 +24,7 @@
     "@iconify-json/logos": "^1.2.10",
     "@iconify-json/lucide": "^1.2.26",
     "@iconify-json/simple-icons": "^1.2.63",
+    "@radix-ui/react-dialog": "^1.1.15",
     "@tailwindcss/vite": "^4.0.7",
     "@types/react": "19.0.0",
     "@types/react-dom": "19.0.0",
