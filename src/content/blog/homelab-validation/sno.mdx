@@ -24,11 +24,15 @@ One node, one cluster, one purpose: prove that OKD 4.20 installs and runs on thi
 - Backnet (VLAN 10) storage path validated through the CRS317 switch
 - etcd on the Intel D3-S3610 boot SSD without slow-disk warnings
 
-## Prerequisites: DNS and the chain nobody documents
+## Prerequisites: DNS — it's always DNS
 
-The MikroTik network stack from the [previous post](/blog/homelab-network-impl/phase0) is already in place. What's left is DNS — and this is where the first hour went sideways.
+In October 2025, a DNS misconfiguration took down a chunk of AWS. Not a hardware failure, not a DDoS — just DNS doing what DNS does when nobody's paying attention to the resolution chain. I'd like to say I learned from that. I did not.
 
-OKD needs three DNS records: `api.<cluster>.<domain>`, `api-int.<cluster>.<domain>`, and a wildcard `*.apps.<cluster>.<domain>`. For SNO with `platform: none`, all three must point at the node's IP (`192.168.1.7`) because there's no keepalived to manage VIP addresses.
+The MikroTik network stack from the [previous post](/blog/homelab-network-impl/phase0) is already in place. What's left is DNS — and this is where the first hour went sideways. Then the second hour. Then the third attempt finally worked.
+
+OKD needs three DNS records: `api.<cluster>.<domain>`, `api-int.<cluster>.<domain>`, and a wildcard `*.apps.<cluster>.<domain>`. For SNO with `platform: none`, all three must point at the node's IP (`192.168.1.7`) because there's no keepalived to manage VIP addresses. Simple enough. Three records. What could go wrong.
+
+### DNS failure #1: the chain nobody documents
 
 The DNS chain in this setup:
 
@@ -37,6 +41,8 @@ Node (192.168.1.7) → Pi-hole (192.168.1.12) → ??? → Router (192.168.1.1) �
 ```
 
 The "???" is the problem. Pi-hole uses OpenDNS as its upstream resolver. It never queries the MikroTik router for local zones. So even though the router has correct records for `api.sno.home.lab`, the node asks Pi-hole, Pi-hole asks OpenDNS, and OpenDNS has no idea what `sno.home.lab` is.
+
+The install sits there for an hour, printing "Bootstrap Kube API never initialized" every 30 seconds, because the node can't resolve its own API endpoint. An hour of staring at logs before I traced the resolution path and realized Pi-hole was sending `home.lab` queries to the internet.
 
 **The fix:** Pi-hole conditional forwarding. One line in the Pi-hole DNS settings tells it to forward all `home.lab` queries to the router:
 
@@ -49,6 +55,24 @@ After that, the chain works:
 ```
 Node → Pi-hole → Router → static records → 192.168.1.7
 ```
+
+### DNS failure #2: the name mismatch
+
+Fixed the forwarding. Ran the installer again. Timed out again:
+
+```
+ERROR dial tcp: lookup api.okd.home.lab on 192.168.1.12:53: no such host
+```
+
+The install-config had `name: sno`. The DNS records on the router were for `api.sno.home.lab`. But I had stale records from a previous attempt using `name: okd` — the installer was resolving `api.okd.home.lab`. The metadata name in the YAML is the DNS prefix. If they don't match, bootstrap will never initialize.
+
+Two DNS failures, two hours lost. AWS at least had the excuse of operating at planetary scale. I had three records on a router in my living room.
+
+### DNS failure #3: the wrong record type
+
+Even after fixing the chain and the name, the wildcard `*.apps.sno.home.lab` didn't resolve correctly at first. RouterOS has two DNS record mechanisms — `address=` type (resolves locally) and `FWD` type (forwards to another server). I initially used a FWD record pointing at the node IP. That's wrong — FWD tells the router to ask `192.168.1.7` to resolve the hostname, and the node has no DNS server. The correct approach is a regex record with `address=` type that directly returns the IP.
+
+Third attempt worked. Three DNS failures, three different root causes, one lesson: if AWS can go down because of DNS, your homelab definitely will.
 
 ![DNS verification: all four dig queries resolving correctly through both the router and Pi-hole](./sno-dns-verify.png)
 
@@ -267,22 +291,6 @@ cat install/auth/kubeadmin-password
 
 Open the console URL in a browser, login as `kubeadmin` with the password from the file. Both methods use the credentials generated during ISO creation — they're in `install/auth/` from the moment you built the ISO.
 
-## The DNS lesson (again)
-
-My first attempt failed with:
-
-```
-ERROR dial tcp: lookup api.okd.home.lab on 192.168.1.12:53: no such host
-```
-
-This was the `metadata.name` mismatch. My `install-config.yaml` had `name: sno`, but the installer was trying to resolve `api.okd.home.lab`. Turns out I had an old set of DNS records from a previous attempt pointing at a different cluster name. The fix was straightforward once I realized the cluster name in the YAML determines the DNS prefix — `name: sno` means `api.sno.home.lab`, period.
-
-The second DNS failure was the Pi-hole conditional forwarding issue described above. After fixing both, the third attempt worked.
-
-<Callout title="metadata.name = DNS prefix" variant="important">
-  If `install-config.yaml` says `name: sno`, the installer expects `api.sno.home.lab`. If DNS has `api.okd.home.lab`, bootstrap times out with "no such host." These must match. Decide on your cluster name before creating DNS records.
-</Callout>
-
 ## VIPs and platform: none
 
 The minimal network config from the [previous post](/blog/homelab-network-impl/phase0) had OKD VIPs at `.253` and `.254` on Frontnet. That works for a multi-node cluster where keepalived manages those addresses. For SNO with `platform: none`, there is no keepalived — the API and ingress bind directly on the node's actual IP (`.7`).
@@ -443,9 +451,9 @@ Every one of these cost time during the install:
 
 4. **Interface names must match exactly in agent-config.yaml.** The Dell OptiPlex 5090 SFF onboard NIC is `enp0s31f6`. If your route config says `enp1s0`, NMState validation fails and no ISO is generated.
 
-5. **metadata.name = DNS prefix.** If the YAML says `sno`, DNS must have `api.sno.home.lab`. No exceptions.
+5. **metadata.name = DNS prefix.** If the YAML says `sno`, DNS must have `api.sno.home.lab`. No exceptions. Two hours of my life learned this.
 
-6. **Pi-hole doesn't forward to the router by default.** It goes straight to OpenDNS. Add conditional forwarding for your `home.lab` zone.
+6. **Pi-hole doesn't forward to the router by default.** It goes straight to OpenDNS. Add conditional forwarding for your `home.lab` zone. If AWS can go down over DNS, your homelab will too.
 
 7. **platform: none means no VIPs.** No keepalived, no haproxy. Everything binds on the node IP. DNS must point at `.7`, not at `.253/.254`.
 
