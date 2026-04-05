@@ -66,6 +66,72 @@ Two YAML files go in: `install-config.yaml` and `agent-config.yaml`. The ISO gen
   The guide at `github.com/openshift/assisted-service/deploy/podman` is obsolete for OKD 4.20. It tries to pull `quay.io/edge-infrastructure/assisted-installer-agent:latest` — an OCP-aligned image that doesn't exist for OKD. The OKD website's own page for this method warns it "won't produce a working system." Use the agent-based installer instead.
 </Callout>
 
+### install-config.yaml
+
+```yaml
+apiVersion: v1
+baseDomain: home.lab
+metadata:
+  name: sno
+compute:
+  - name: worker
+    replicas: 0
+controlPlane:
+  name: master
+  replicas: 1
+networking:
+  networkType: OVNKubernetes
+  clusterNetwork:
+    - cidr: 10.128.0.0/14
+      hostPrefix: 23
+  serviceNetwork:
+    - 172.30.0.0/16
+  machineNetwork:
+    - cidr: 192.168.1.0/24
+platform:
+  none: {}
+pullSecret: '<your-pull-secret-json>'
+sshKey: 'ssh-ed25519 AAAA... okd-homelab'
+```
+
+### agent-config.yaml
+
+```yaml
+apiVersion: v1beta1
+kind: AgentConfig
+metadata:
+  name: sno
+rendezvousIP: 192.168.1.7
+hosts:
+  - hostname: sno.home.lab
+    role: master
+    interfaces:
+      - name: enp0s31f6
+        macAddress: D0:8E:79:05:37:0A
+    networkConfig:
+      interfaces:
+        - name: enp0s31f6
+          type: ethernet
+          state: up
+          ipv4:
+            enabled: true
+            address:
+              - ip: 192.168.1.7
+                prefix-length: 24
+            dhcp: false
+          ipv6:
+            enabled: false
+      dns-resolver:
+        config:
+          server:
+            - 192.168.1.12
+      routes:
+        config:
+          - destination: 0.0.0.0/0
+            next-hop-address: 192.168.1.1
+            next-hop-interface: enp0s31f6
+```
+
 I built the ISO from Node 1 (the old Kubernetes node running Ubuntu) using a Fedora container. One command handles everything:
 
 ```bash
@@ -81,6 +147,23 @@ sudo podman run --rm -it -v $(pwd):/work -w /work fedora:latest bash -c '
 ```
 
 882 MB ISO, built in about 8 minutes. The installer extracted the SCOS base ISO from the release payload, validated the NMState config, and embedded everything into a single bootable image.
+
+After generation, the working directory looks like this:
+
+```
+okd-cluster/
+├── agent-config.yaml
+├── install-config.yaml
+├── openshift-install
+└── install/
+    ├── agent.x86_64.iso        # 882 MB — the bootable image
+    ├── rendezvousIP             # contains "192.168.1.7"
+    └── auth/
+        ├── kubeadmin-password   # generated admin password
+        └── kubeconfig           # cluster admin credentials
+```
+
+The `install/auth/` directory is created during ISO generation, not after install completes. The kubeconfig and kubeadmin password are embedded in the ISO and available immediately — you don't need to wait for the cluster to come up to get them.
 
 <Callout title="Interface names must match exactly" variant="warning">
   The NMState config in `agent-config.yaml` requires the exact Linux interface name. On the Dell OptiPlex 5090 SFF, the onboard Intel NIC shows as `enp0s31f6`, not `eno1` or `enp1s0`. The `next-hop-interface` in the route config must match this exactly. If it doesn't, `nmstatectl` fails with "next hop interface not found" and no ISO is generated.
@@ -147,6 +230,42 @@ INFO cluster bootstrap is complete
 ```
 
 Then `wait-for install-complete` takes over and watches the 960 manifests get applied. Cluster operators come up one by one — from 0% to 68%, back to 0% (API server restart), back up to 67%, and eventually all the way through.
+
+```bash
+./openshift-install agent wait-for install-complete --dir install --log-level=debug
+```
+
+In my case, this command timed out after ~70 minutes because the ingress canary check was failing (more on that below). The cluster was functional — the timeout is just the installer giving up on waiting for all operators to report healthy. The error output tells you to troubleshoot and re-run the command:
+
+```
+ERROR Cluster operator ingress is degraded: timed out waiting for the condition
+ERROR The 'wait-for install-complete' subcommand can then be used to continue the installation
+```
+
+### Connecting to the cluster
+
+Once bootstrap completes, the cluster is accessible. Two ways in:
+
+**Via kubeconfig (CLI):**
+
+```bash
+export KUBECONFIG=install/auth/kubeconfig
+oc get nodes
+oc get co
+```
+
+**Via web console (browser):**
+
+```bash
+# Console URL
+oc whoami --show-console
+# https://console-openshift-console.apps.sno.home.lab
+
+# Admin password
+cat install/auth/kubeadmin-password
+```
+
+Open the console URL in a browser, login as `kubeadmin` with the password from the file. Both methods use the credentials generated during ISO creation — they're in `install/auth/` from the moment you built the ISO.
 
 ## The DNS lesson (again)
 
