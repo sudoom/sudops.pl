@@ -2,9 +2,11 @@
 
 This file provides guidance to Claude Code (claude.ai/code) when working with code in this repository.
 
+**Keep this file up to date as the project evolves.** When you add features, change structure, or learn something new about the codebase, update CLAUDE.md in the same commit — don't wait to be asked.
+
 ## Project Overview
 
-Personal blog and portfolio site (sudops.pl) built with **Astro 5** using the astro-erudite template. Uses MDX for content, Tailwind CSS 4 for styling, shadcn/ui for UI components, and React for interactive components.
+Personal blog and portfolio site (sudops.pl) built with **Astro 6** using the astro-erudite template. Uses MDX for content, Tailwind CSS 4 for styling, shadcn/ui for UI components, and React for interactive components.
 
 ## Deployment
 
@@ -16,6 +18,10 @@ npm run build && git add . && git commit -m "your message" && git push origin ma
 ```
 
 You can verify the result at https://sudops.pl after the Cloudflare build completes.
+
+### Cloudflare Environment Variables
+- `BREVO_API_KEY` — Brevo API key for newsletter
+- `BREVO_LIST_ID` — Brevo mailing list ID
 
 ## Commands
 
@@ -36,7 +42,7 @@ You can verify the result at https://sudops.pl after the Cloudflare build comple
 Content schemas are defined in `src/content.config.ts`.
 
 ### Key Files
-- `src/consts.ts` — Site metadata, nav links, social links
+- `src/consts.ts` — Site metadata, nav links, social links, newsletter consent text
 - `src/lib/data-utils.ts` — All content querying functions (posts, tags, subposts, TOC, reading time)
 - `src/styles/global.css` — Theme color variables (OKLCH format), light/dark mode via `data-theme` attribute
 - `src/styles/typography.css` — Prose/blog content typography (Geist font family)
@@ -44,9 +50,17 @@ Content schemas are defined in `src/content.config.ts`.
 
 ### Component Patterns
 - Astro components in `src/components/` for static rendering (Header, Footer, BlogCard, ProjectCard, Callout, TOC, etc.)
-- React components only where client-side interactivity is needed
-- shadcn/ui primitives in `src/components/ui/`
+- React components in `src/components/react/` for client-side interactivity (Newsletter, NewsletterPopup, ErrorBoundary)
+- shadcn/ui primitives in `src/components/ui/` (avatar, badge, button, dialog, pagination, etc.)
 - `src/components/Callout.astro` has 22 callout variants (note, tip, warning, danger, theorem, etc.)
+- `src/components/BomPieChart.tsx` — interactive recharts doughnut chart (used in BOM post)
+
+### Newsletter Integration
+- **Popup form** (`src/components/react/NewsletterPopup.tsx`) — floating mail button + auto-popup after 40% scroll, dismissible per session
+- **Form** (`src/components/react/Newsletter.tsx`) — email input with GDPR consent checkbox
+- **API** (`functions/api/newsletter/subscribe.ts`) — Cloudflare Pages Function, adds contacts to Brevo via `/v3/contacts` API
+- **Confirmation page** (`src/pages/newsletter/confirmed.astro`)
+- Campaigns/newsletters sent manually via Brevo UI
 
 ### Styling
 - Tailwind CSS 4 with `@tailwindcss/vite` plugin
@@ -59,9 +73,9 @@ The blog is a homelab series. Posts use a parent/subpost pattern where topics wi
 
 - `homelab-why/` — Standalone post (why this project)
 - `homelab-design/` — Parent + subposts: `compute.mdx`, `network.mdx`, `storage.mdx`
-- `homelab-bom/` — Parent + subposts: `pre-validation.mdx`, post-SNO *(future)*
+- `homelab-bom/` — Parent + subposts: `pre-validation.mdx`, `post-sno.mdx`
 - `homelab-network-impl/` — Parent + subposts: `phase0.mdx`, post-SNO *(future)*
-- `homelab-validation/` — Parent + subposts: `hardware.mdx`, SNO *(future)*
+- `homelab-validation/` — Parent + subposts: `hardware.mdx`, `sno.mdx`
 
 When converting raw drafts to MDX:
 - Strip social media drafts (LinkedIn/Slack/Reddit) from the end
@@ -71,6 +85,16 @@ When converting raw drafts to MDX:
 - Use first person ("I"), never "we" — this is a personal blog
 - Keep prose tight and conversational. Avoid textbook-style explanations — assume the reader has context. If something can be said in one sentence, don't use three.
 - Prefer simple words over fancy ones (e.g. "leftovers" not "remnants", "locked down" not "walled garden", "can't be changed" not "immutable", "removes" not "eliminates")
+- **MDX gotcha:** `<` followed by a digit (e.g. `<100 ms`, `<1 ms`) gets parsed as a JSX tag and breaks the build. Use "under 100 ms" or "less than 1 ms" instead.
+- Summary diagrams (e.g. `hwvalidation.png`, `snovalidation.png`) go after the go/no-go table at the end of validation posts, before "What's next"
+
+### Pages
+- `/blog` — Blog listing (10 posts per page, grouped by year, minimal card style)
+- `/privacy` — Privacy policy (GDPR, Brevo, Cloudflare)
+- `/terms` — Terms & conditions
+- `/newsletter/confirmed` — Post-subscription confirmation
+- `/tags` — Tag index
+- `/projects` — Project portfolio
 
 ### Raw Blog Post Drafts
 
