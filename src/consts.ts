@@ -8,7 +8,7 @@ export const SITE: Site = {
   author: 'Vadzim Dziadziulia',
   locale: 'en-US',
   featuredPostCount: 2,
-  postsPerPage: 3,
+  postsPerPage: 10,
 }
 
 export const NAV_LINKS: SocialLink[] = [
@@ -44,6 +44,13 @@ export const SOCIAL_LINKS: SocialLink[] = [
     label: 'Email',
   },
 ]
+
+// Newsletter consent text (centralized for GDPR compliance)
+export const NEWSLETTER_CONSENT_TEXT = {
+  text: 'I agree to receive newsletter emails.',
+  privacyLink: '/privacy',
+  privacyText: 'Privacy Policy',
+}
 
 export const ICON_MAP: IconMap = {
   Website: 'lucide:globe',

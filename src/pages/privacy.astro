@@ -1,0 +1,138 @@
+---
+import Breadcrumbs from '@/components/Breadcrumbs.astro'
+import PageHead from '@/components/PageHead.astro'
+import Layout from '@/layouts/Layout.astro'
+import { Icon } from 'astro-icon/components'
+import { SITE, SOCIAL_LINKS } from '@/consts'
+
+const contactEmail = SOCIAL_LINKS.find(link => link.label === 'Email')?.href.replace('mailto:', '') || 'root@sudoom.pl'
+const siteName = SITE.title
+---
+
+<Layout class="max-w-3xl">
+  <PageHead slot="head" title="Privacy Policy" />
+  <Breadcrumbs items={[{ label: 'Privacy Policy', icon: 'lucide:shield-check' }]} />
+
+  <article class="prose prose-neutral dark:prose-invert max-w-none">
+    <div class="rounded-lg border bg-card/50 p-6 mb-6">
+      <div class="flex items-center gap-3 mb-2">
+        <Icon name="lucide:shield-check" class="size-6 text-primary" />
+        <h1 class="text-3xl font-bold m-0">Privacy Policy</h1>
+      </div>
+      <p class="text-muted-foreground text-sm m-0">
+        Last updated: {new Date().toLocaleDateString('en-US', { year: 'numeric', month: 'long', day: 'numeric' })}
+      </p>
+    </div>
+
+    <section class="space-y-4 mb-8">
+      <h2 class="text-2xl font-semibold">Introduction</h2>
+      <p>
+        At {siteName}, I respect your privacy and am committed to protecting your personal data.
+        This privacy policy explains how I collect, use, and safeguard your information when you visit this website.
+      </p>
+    </section>
+
+    <section class="space-y-4 mb-8">
+      <h2 class="text-2xl font-semibold">Data Controller</h2>
+      <div class="rounded-lg border bg-muted/30 p-4">
+        <p class="m-0"><strong>{siteName}</strong></p>
+        <p class="m-0 text-sm text-muted-foreground">Email: <a href={`mailto:${contactEmail}`} class="underline">{contactEmail}</a></p>
+      </div>
+    </section>
+
+    <section class="space-y-4 mb-8">
+      <h2 class="text-2xl font-semibold">Information I Collect</h2>
+
+      <h3 class="text-xl font-semibold mt-6">1. Newsletter Subscriptions (Brevo)</h3>
+      <p>When you subscribe to the newsletter, I collect:</p>
+      <ul>
+        <li>Email address</li>
+        <li>Subscription date and time</li>
+        <li>IP address (for fraud prevention)</li>
+      </ul>
+      <p>
+        I use <strong>Brevo</strong> (formerly Sendinblue) to manage newsletter subscriptions.
+        Your email address is stored securely on Brevo's servers. You can unsubscribe at any time
+        by clicking the unsubscribe link in any newsletter email or by contacting me directly.
+      </p>
+      <p><strong>Legal basis:</strong> Your explicit consent (GDPR Article 6(1)(a))</p>
+      <p><strong>Data retention:</strong> Until you unsubscribe or request deletion</p>
+
+      <h3 class="text-xl font-semibold mt-6">2. Hosting (Cloudflare Pages)</h3>
+      <p>
+        This website is hosted on <strong>Cloudflare Pages</strong>. Cloudflare may collect:
+      </p>
+      <ul>
+        <li>IP address</li>
+        <li>Browser information</li>
+        <li>Pages visited</li>
+      </ul>
+      <p>
+        For more information, review
+        <a href="https://www.cloudflare.com/privacypolicy/" target="_blank" rel="noopener noreferrer" class="underline">Cloudflare's Privacy Policy</a>.
+      </p>
+    </section>
+
+    <section class="space-y-4 mb-8">
+      <h2 class="text-2xl font-semibold">Cookies</h2>
+      <p>
+        This website uses minimal cookies for essential functionality only (theme preference).
+        No tracking cookies or third-party analytics are used.
+      </p>
+    </section>
+
+    <section class="space-y-4 mb-8">
+      <h2 class="text-2xl font-semibold">Your Rights (GDPR)</h2>
+      <p>Under the General Data Protection Regulation (GDPR), you have the following rights:</p>
+      <ul>
+        <li><strong>Right to access:</strong> Request a copy of the personal data I hold about you</li>
+        <li><strong>Right to rectification:</strong> Request correction of inaccurate data</li>
+        <li><strong>Right to erasure:</strong> Request deletion of your personal data</li>
+        <li><strong>Right to restrict processing:</strong> Request limitation of how I process your data</li>
+        <li><strong>Right to data portability:</strong> Request your data in a structured format</li>
+        <li><strong>Right to object:</strong> Object to processing of your personal data</li>
+        <li><strong>Right to withdraw consent:</strong> Withdraw consent at any time</li>
+      </ul>
+      <p>
+        To exercise any of these rights, contact me at <a href={`mailto:${contactEmail}`} class="underline">{contactEmail}</a>.
+      </p>
+    </section>
+
+    <section class="space-y-4 mb-8">
+      <h2 class="text-2xl font-semibold">Data Security</h2>
+      <p>
+        I implement appropriate technical and organizational measures to protect your personal data
+        against unauthorized access, alteration, disclosure, or destruction. However, no method of
+        transmission over the Internet is 100% secure.
+      </p>
+    </section>
+
+    <section class="space-y-4 mb-8">
+      <h2 class="text-2xl font-semibold">Third-Party Services</h2>
+      <p>This website uses the following third-party services that may process your personal data:</p>
+      <ul>
+        <li><strong>Brevo:</strong> Newsletter management — <a href="https://www.brevo.com/legal/privacypolicy/" target="_blank" rel="noopener noreferrer" class="underline">Privacy Policy</a></li>
+        <li><strong>Cloudflare:</strong> Hosting and CDN — <a href="https://www.cloudflare.com/privacypolicy/" target="_blank" rel="noopener noreferrer" class="underline">Privacy Policy</a></li>
+      </ul>
+    </section>
+
+    <section class="space-y-4 mb-8">
+      <h2 class="text-2xl font-semibold">Changes to This Policy</h2>
+      <p>
+        I may update this privacy policy from time to time. Changes will be posted on this page
+        with an updated "Last updated" date.
+      </p>
+    </section>
+
+    <section class="space-y-4 mb-8">
+      <h2 class="text-2xl font-semibold">Contact</h2>
+      <p>If you have any questions about this privacy policy or wish to exercise your rights:</p>
+      <div class="rounded-lg border bg-muted/30 p-4">
+        <p class="m-0"><strong>Email:</strong> <a href={`mailto:${contactEmail}`} class="underline">{contactEmail}</a></p>
+        <p class="m-0 text-sm text-muted-foreground mt-2">
+          I aim to respond to all inquiries within 30 days.
+        </p>
+      </div>
+    </section>
+  </article>
+</Layout>
