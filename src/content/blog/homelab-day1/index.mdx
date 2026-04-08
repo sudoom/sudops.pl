@@ -64,7 +64,7 @@ platform:
     ingressVIPs:
       - 192.168.1.241
 pullSecret: '{"auths":{"fake":{"auth":"aWQ6cGFzcwo="}}}'
-sshKey: '<redacted>'
+sshKey: 'ssh-ed25519 AAAA... okd-homelab'
 ```
 
 `compute.replicas: 0` is the key — it makes all three masters schedulable as workers. The `machineNetwork` only includes VLAN 5. The storage network (VLAN 10) is invisible to Kubernetes — it's configured at the OS level post-install.
