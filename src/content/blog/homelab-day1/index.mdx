@@ -232,7 +232,7 @@ INFO Access the OpenShift web-console here: https://console-openshift-console.ap
 INFO Login to the console with user: "kubeadmin", and password: "<redacted>"
 ```
 
-![OKD console showing all three nodes Ready](./day1-console-nodes.png)
+![OKD console cluster overview — 3 nodes, 221 pods, all healthy](./day1-console-overview.png)
 
 ## Validation
 
@@ -261,7 +261,7 @@ All 34 cluster operators: Available=True, Progressing=False, Degraded=False. Zer
 
 VIP failover: Node 5 holds the API VIP. Draining it moved the VIP to another node within seconds — `oc get nodes` still works. Uncordoned, VIP moved back.
 
-![OKD console cluster overview — 3 nodes, 221 pods, all healthy](./day1-console-overview.png)
+![OKD console showing all three nodes Ready](./day1-console-nodes.png)
 
 ## The split-horizon DNS gotcha
 
