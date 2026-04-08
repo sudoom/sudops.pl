@@ -1,7 +1,7 @@
 ---
 title: 'OKD 3-Node Cluster: Day 1'
 description: 'Three Dell OptiPlex 5090s, five install attempts, and every failure documented — VIP collisions with the old cluster, NTP that nobody enabled, DNS pointing at the wrong API, and the x509 certificate that revealed it all.'
-date: 2026-05-02
+date: 2026-05-07
 tags: ['homelab', 'okd', 'kubernetes', 'bare-metal', 'installation']
 authors: ['vd']
 ---
@@ -235,15 +235,6 @@ INFO Login to the console with user: "kubeadmin", and password: "<redacted>"
 ![OKD console cluster overview — 3 nodes, 221 pods, all healthy](./day1-console-overview.png)
 
 ## Validation
-
-Three nodes, all Ready, correct roles:
-
-```
-NAME                  STATUS   ROLES                         AGE     VERSION
-node4.okd.sudops.pl   Ready    control-plane,master,worker   4h30m   v1.33.5
-node5.okd.sudops.pl   Ready    control-plane,master,worker   5h15m   v1.33.5
-node6.okd.sudops.pl   Ready    control-plane,master,worker   5h14m   v1.33.5
-```
 
 etcd: three members, all healthy, one leader:
 
