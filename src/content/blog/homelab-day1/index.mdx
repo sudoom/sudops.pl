@@ -261,6 +261,8 @@ All 34 cluster operators: Available=True, Progressing=False, Degraded=False. Zer
 
 VIP failover: Node 5 holds the API VIP. Draining it moved the VIP to another node within seconds — `oc get nodes` still works. Uncordoned, VIP moved back.
 
+![OKD console cluster overview — 3 nodes, 221 pods, all healthy](./day1-console-overview.png)
+
 ## The split-horizon DNS gotcha
 
 With `sudops.pl` as the baseDomain, Pi-hole needs to know that `*.okd.sudops.pl` should go to the router, not upstream DNS. But you can't just forward all of `sudops.pl` — that breaks the public blog and Cloudflare records.
