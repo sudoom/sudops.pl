@@ -130,6 +130,25 @@ The original VIPs were .200 and .201. Something already owns .200.
 
 My first thought was the CRS317 switch — its management IP was 192.168.1.200 from the Stage 0 network config. But I checked: the CRS317 management is at .220, unchanged. The actual owner: **Node 1** — the old vanilla Kubernetes cluster that's still running. Its API VIP is 192.168.1.200. And it can't be shut down — it's still serving workloads.
 
+Meanwhile, the `openshift-install` monitoring binary on my bastion showed something else entirely:
+
+```
+ERROR tls: failed to verify certificate: x509: certificate is valid for
+  kube-cp.homelab.net, kubernetes, kubernetes.default, [...] node1,
+  not api.okd.sudops.pl
+```
+
+Read that SAN list: `kube-cp.homelab.net`, `node1`. That's the old vanilla Kubernetes cluster. The monitoring binary connects to `api.okd.sudops.pl:6443`, which resolves to .200 — the old k8s VIP — because that's what the DNS records say.
+
+At this point two things needed fixing: the VIP collision *and* the DNS chain. New VIPs: 192.168.1.240 and .241. Updated MikroTik static DNS. But that's not enough — **Pi-hole caches DNS responses**, and it was still serving the old .200 address from cache.
+
+```bash
+# On Pi-hole
+pihole restartdns
+```
+
+Without flushing the Pi-hole cache, the bastion keeps resolving `api.okd.sudops.pl` to .200 no matter what the router says. This is the second time the Pi-hole DNS chain caught me — [the first was during SNO](/blog/homelab-validation/sno).
+
 New VIPs: 192.168.1.240 (API) and 192.168.1.241 (Ingress). ISO regenerated.
 
 ![First install attempt — JetKVM console showing VIP conflict and waiting for hosts](./day1-first-attempt.png)
@@ -155,27 +174,6 @@ One command. The validation re-runs every 30 seconds — no reboot needed. Withi
 INFO Host node4.okd.sudops.pl validation: Host NTP is synced
 INFO Host node4.okd.sudops.pl: validation 'ntp-synced' is now fixed
 ```
-
-## Attempt 1 (continued): the x509 certificate that revealed the DNS chain
-
-Still on the first attempt with VIPs at .200/.201 — the Assisted Service flagged the VIP collision, but the `openshift-install` monitoring binary on my bastion showed something else entirely:
-
-```
-ERROR tls: failed to verify certificate: x509: certificate is valid for
-  kube-cp.homelab.net, kubernetes, kubernetes.default, [...] node1,
-  not api.okd.sudops.pl
-```
-
-Read that SAN list: `kube-cp.homelab.net`, `node1`. That's the old vanilla Kubernetes cluster. The monitoring binary connects to `api.okd.sudops.pl:6443`, which resolves to .200 — the old k8s VIP — because that's what the DNS records say.
-
-At this point two things needed fixing: the VIP collision *and* the DNS chain. New VIPs: 192.168.1.240 and .241. Updated MikroTik static DNS. But that's not enough — **Pi-hole caches DNS responses**, and it was still serving the old .200 address from cache.
-
-```bash
-# On Pi-hole
-pihole restartdns
-```
-
-Without flushing the Pi-hole cache, the bastion keeps resolving `api.okd.sudops.pl` to .200 no matter what the router says. This is the second time the Pi-hole DNS chain caught me — [the first was during SNO](/blog/homelab-validation/sno).
 
 ## The boot strategy problem: one JetKVM, three nodes
 
