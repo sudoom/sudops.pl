@@ -195,9 +195,9 @@ sudo dd if=install/agent.x86_64.iso of=/dev/sdc bs=4M status=progress
 
 Within 10 minutes, all three nodes were in the discovery phase. The Assisted Service validated NTP, connectivity, and VIP availability, then started the install automatically.
 
-## Attempt 3: "Cannot access Rendezvous Host"
+## Attempt 3: patience
 
-With the boot strategy sorted, the next run hit this in the monitoring output:
+With the boot strategy sorted, all three nodes booted and registered. The monitoring output went through several phases:
 
 ```
 INFO Cannot access Rendezvous Host. There may be a network configuration problem
@@ -211,11 +211,9 @@ INFO Bootstrap configMap status is complete
 INFO Bootstrap is complete
 ```
 
-## Attempts 4 and 5: patience
+Then the `wait-for-install-complete` command timed out — not because anything was broken, but because operators take time to converge. The ingress controller needs router pods scheduled. The authentication operator waits for ingress. The console waits for authentication. The monitoring stack rolls out in parallel. On a 3-node cluster with 1GbE management network, the full operator convergence takes about 90 minutes.
 
-The `wait-for-install-complete` command timed out twice more — not because anything was broken, but because operators take time to converge. The ingress controller needs router pods scheduled. The authentication operator waits for ingress. The console waits for authentication. The monitoring stack rolls out in parallel. On a 3-node cluster with 1GbE management network, the full operator convergence takes about 90 minutes.
-
-The fourth attempt showed operators mid-convergence:
+Mid-convergence:
 
 ```
 ERROR Cluster operator authentication Available is False
@@ -224,14 +222,14 @@ INFO Cluster operator kube-apiserver Progressing is True
 INFO Cluster operator monitoring Progressing is True with RollOutInProgress
 ```
 
-The fifth `wait-for-install-complete` — launched about 30 minutes after attempt 4 timed out — finally caught everything in the green:
+Re-running `wait-for-install-complete` after giving the operators time finally caught everything in the green:
 
 ```
 INFO All cluster operators have completed progressing
 INFO Checking to see if there is a route at openshift-console/console...
 INFO Install complete!
 INFO Access the OpenShift web-console here: https://console-openshift-console.apps.okd.sudops.pl
-INFO Login to the console with user: "kubeadmin", and password: "XDjCj-XZL5s-7tadM-j7oa3"
+INFO Login to the console with user: "kubeadmin", and password: "<redacted>"
 ```
 
 ![OKD console showing all three nodes Ready](./day1-console-nodes.png)
@@ -267,12 +265,13 @@ VIP failover: Node 5 holds the API VIP. Draining it moved the VIP to another nod
 
 With `sudops.pl` as the baseDomain, Pi-hole needs to know that `*.okd.sudops.pl` should go to the router, not upstream DNS. But you can't just forward all of `sudops.pl` — that breaks the public blog and Cloudflare records.
 
-The fix is a targeted dnsmasq directive that forwards only the OKD subdomain:
+The fix is Pi-hole's conditional forwarding. In the Pi-hole admin UI under Settings → DNS → Conditional forwarding, add a reverse server entry:
 
-```bash
-echo "server=/okd.sudops.pl/192.168.1.1" | sudo tee /etc/dnsmasq.d/10-okd-sudops.conf
-pihole restartdns
 ```
+true,192.168.1.0/24,192.168.1.1,okd.sudops.pl
+```
+
+This tells Pi-hole to forward any query for `*.okd.sudops.pl` to the MikroTik router at 192.168.1.1, which has the static DNS entries for the cluster. Everything else goes to upstream DNS normally.
 
 `api.okd.sudops.pl` → router → 192.168.1.240. `sudops.pl` → upstream DNS → Cloudflare. Each query goes where it should.
 
@@ -287,25 +286,6 @@ pihole restartdns
 **Plan the multi-node boot strategy before starting.** One JetKVM can't boot three nodes simultaneously. The agent-based installer needs all hosts in discovery at the same time — this isn't `kubeadm join`. Have USB sticks ready, or use HTTP-served ISOs if your JetKVM firmware supports virtual media mount.
 
 **Don't panic when `wait-for-install-complete` times out.** The 60-minute timeout for the monitoring binary is aggressive for a 3-node compact cluster where operators are still converging. If bootstrap completed and `oc get co` shows operators progressing (not degraded), just wait. Re-run the command.
-
-## Timeline
-
-| Time | Event |
-|------|-------|
-| Apr 2, 19:35 | Attempt 1: VIP .200 conflict with old k8s cluster. x509 cert reveals DNS pointing at wrong API |
-| Apr 2, ~20:00 | Fix: new VIPs (.240/.241), update router DNS, flush Pi-hole cache, flush Mac DNS |
-| Apr 2, 21:10 | New ISO generated with corrected VIPs |
-| Apr 2, 21:45 | Attempt 2: NTP failure → enable NTP server on CCR2004 → fixed in 1 minute |
-| Apr 2, ~22:00 | Boot strategy problem: single JetKVM can't boot 3 nodes simultaneously |
-| Apr 2, ~22:30 | Solution: JetKVM for Node 4, USB sticks for Nodes 5+6 |
-| Apr 3, 09:20 | Attempt 3: "Cannot access Rendezvous Host" (misleading — just transition from agent to kube API) |
-| Apr 3, 10:44 | Bootstrap complete confirmed |
-| Apr 3, 11:20 | Attempt 4: operators still converging, timeout |
-| Apr 3, 12:20 | Attempt 5: authentication/ingress/monitoring still progressing, timeout |
-| Apr 3, 12:59 | **Install complete.** All 34 operators green. |
-| Apr 3, 15:52 | Validation: 3 nodes Ready, etcd healthy, console accessible |
-
-Total wall-clock time from first boot to "Install complete!": about 17 hours. Actual installer run time on the successful attempt: about 90 minutes. The rest was debugging things that should have been right before the ISO was generated.
 
 ## What's next
 
