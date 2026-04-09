@@ -1,6 +1,6 @@
 ---
 title: 'OKD 3-Node Cluster: Day 1'
-description: 'Three Dell OptiPlex 5090s, five install attempts, and every failure documented — VIP collisions with the old cluster, NTP that nobody enabled, DNS pointing at the wrong API, and the x509 certificate that revealed it all.'
+description: 'Three Dell OptiPlex 5090s, three install attempts, and every failure documented — VIP collisions with the old cluster, NTP that nobody enabled, DNS pointing at the wrong API, and the x509 certificate that revealed it all.'
 date: 2026-05-07
 tags: ['homelab', 'okd', 'kubernetes', 'bare-metal', 'installation']
 authors: ['vd']
@@ -10,7 +10,7 @@ import Callout from '@/components/Callout.astro'
 
 The hardware is [validated](/blog/homelab-validation/hardware). The single-node proof of concept [worked](/blog/homelab-validation/sno). Three identical Dell OptiPlex 5090 SFF machines are racked, cabled, and ready. Time to deploy the production cluster.
 
-This post covers the 3-node OKD 4.20 compact cluster installation — the real one, not a validation throwaway. It took five attempts across two days. Every failure traced back to something that existed before the installer even ran.
+This post covers the 3-node OKD 4.20 compact cluster installation — the real one, not a validation throwaway. It took three attempts across two days. Every failure traced back to something that existed before the installer even ran.
 
 ## What changed from SNO
 
@@ -23,7 +23,7 @@ The SNO validation used `platform: none` on `home.lab` — a disposable test clu
 | **API/Ingress** | Bound to node IP (192.168.1.7) | Floating VIPs via keepalived |
 | **Nodes** | 1 (combined everything) | 3 (compact: control-plane + worker) |
 
-![SNO (Stage 0) vs 3-Node (Stage 1) — platform: none with direct API binding vs platform: baremetal with keepalived floating VIPs](./okd_day1.png)
+![SNO (platform:none) vs 3-node (platform:baremetal) — VIP management architecture](./day1-sno-vs-3node.png)
 
 `platform: baremetal` is mandatory for multi-node agent-based installs in OKD 4.17+. The installer rejects `platform: none` with more than one control plane replica. The good news: this doesn't require BMC, IPMI, or Ironic. With the agent-based installer, you boot nodes manually from an ISO — `platform: baremetal` just means OKD deploys keepalived and haproxy static pods on every control plane node for VIP management.
 
