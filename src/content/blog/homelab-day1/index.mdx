@@ -23,6 +23,8 @@ The SNO validation used `platform: none` on `home.lab` — a disposable test clu
 | **API/Ingress** | Bound to node IP (192.168.1.7) | Floating VIPs via keepalived |
 | **Nodes** | 1 (combined everything) | 3 (compact: control-plane + worker) |
 
+![SNO (Stage 0) vs 3-Node (Stage 1) — platform: none with direct API binding vs platform: baremetal with keepalived floating VIPs](./okd_day1.png)
+
 `platform: baremetal` is mandatory for multi-node agent-based installs in OKD 4.17+. The installer rejects `platform: none` with more than one control plane replica. The good news: this doesn't require BMC, IPMI, or Ironic. With the agent-based installer, you boot nodes manually from an ISO — `platform: baremetal` just means OKD deploys keepalived and haproxy static pods on every control plane node for VIP management.
 
 Using `sudops.pl` instead of `home.lab` enables cert-manager with DNS-01 validation via Cloudflare API later. Browser-trusted wildcard certs for `*.apps.okd.sudops.pl` without managing a private CA. The split-horizon DNS is simple: Pi-hole forwards only `*.okd.sudops.pl` to the MikroTik router via a targeted dnsmasq directive, everything else goes to upstream DNS normally.
