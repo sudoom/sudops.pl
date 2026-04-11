@@ -191,6 +191,28 @@ spec:
   The API server patch rolls kube-apiserver on all three nodes sequentially. `oc` commands may briefly fail during the rollout — wait for `oc get co kube-apiserver` to show `PROGRESSING=False`.
 </Callout>
 
+### Verify the API cert
+
+`curl -vk https://api.okd.sudops.pl:6443` against the control-plane VIP, before and after. Before the patch, the serving cert is the default kube-apiserver-lb-signer:
+
+```
+* Server certificate:
+*  subject: CN=api.okd.sudops.pl
+*  issuer: OU=openshift; CN=kube-apiserver-lb-signer
+*  SSL certificate verify result: self signed certificate in certificate chain (19), continuing anyway.
+```
+
+After ArgoCD syncs wave 3 and kube-apiserver finishes rolling:
+
+```
+* Server certificate:
+*  subject: CN=api.okd.sudops.pl
+*  issuer: C=US; O=Let's Encrypt; CN=R12
+*  SSL certificate verify ok.
+```
+
+Same VIP, same port, new chain. `oc login` no longer needs `--insecure-skip-tls-verify`.
+
 ## The result
 
 After ArgoCD syncs all three waves, every `*.apps.okd.sudops.pl` route serves a Let's Encrypt certificate. ISRG Root X1 → R13 → `*.apps.okd.sudops.pl`. Browser-trusted, auto-renewing.
