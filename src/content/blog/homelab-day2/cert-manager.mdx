@@ -104,7 +104,7 @@ The config chart creates a Let's Encrypt ClusterIssuer and two Certificate resou
 
 ```yaml
 # components/cluster-config/cert-manager-config/values.yaml
-email: "submenu.prow-1o@icloud.com"
+email: "root@example.com"
 cloudflare:
   secretName: cloudflare-api-token
   secretKey: api-token
@@ -132,7 +132,7 @@ Two certificates:
 The ClusterIssuer uses ACME with Cloudflare DNS-01:
 
 ```yaml
-{`apiVersion: cert-manager.io/v1
+apiVersion: cert-manager.io/v1
 kind: ClusterIssuer
 metadata:
   name: letsencrypt-prod
@@ -147,7 +147,7 @@ spec:
           cloudflare:
             apiTokenSecretRef:
               name: {{ .Values.cloudflare.secretName }}
-              key: {{ .Values.cloudflare.secretKey }}`}
+              key: {{ .Values.cloudflare.secretKey }}
 ```
 
 When cert-manager processes a Certificate, it creates a TXT record on Cloudflare, Let's Encrypt verifies it, issues the cert, and cert-manager stores it in the specified Secret. Automatic renewal before expiry.
