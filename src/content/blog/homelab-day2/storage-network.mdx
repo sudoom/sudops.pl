@@ -15,7 +15,7 @@ This post enables the storage network: NMState operator for declarative node net
 
 ## What is NMState?
 
-Kubernetes doesn't manage host networking. Pods get their own network via CNI, but the node's physical NICs — the ones connected to the switch — are outside Kubernetes' control. On a cloud provider, the hypervisor handles this. On bare metal, you need something.
+Kubernetes doesn't manage host networking. Pods get their own network via CNI, but the node's physical NICs — the ones connected to the switch — are outside Kubernetes control. On a cloud provider, the hypervisor handles this. On bare metal, you need something.
 
 NMState is an operator that brings host network configuration into the Kubernetes API. You write a `NodeNetworkConfigurationPolicy` (NNCP) — a declarative spec of what the node's network should look like — and NMState's daemon running on each node applies it via NetworkManager. If the config fails (wrong interface name, bad IP), NMState rolls it back automatically. No SSH-ing into nodes, no `nmcli` by hand, no risk of cutting yourself off.
 
@@ -76,7 +76,7 @@ nodes:
 The template generates one NNCP per node:
 
 ```yaml
-{`{{- range .Values.nodes }}
+{{- range .Values.nodes }}
 ---
 apiVersion: nmstate.io/v1
 kind: NodeNetworkConfigurationPolicy
@@ -105,7 +105,7 @@ spec:
           enabled: false
         ipv6:
           enabled: false
-{{- end }}`}
+{{- end }}
 ```
 
 ### Why per-node NNCPs, not one for all?
@@ -134,25 +134,40 @@ Ceph replication between nodes stays entirely within the CRS317 switch fabric at
 
 ## Verification
 
-After ArgoCD syncs the NNCPs, verify from each node:
+After ArgoCD syncs the NNCPs:
 
 ```bash
-# Check NNCP status
 oc get nncp
-# storage-node4   Available   SuccessfullyConfigured
-# storage-node5   Available   SuccessfullyConfigured
-# storage-node6   Available   SuccessfullyConfigured
-
-# Verify from a node
-oc debug node/node4.okd.sudops.pl -- chroot /host ip addr show enp1s0f0np0
-# inet 192.168.10.2/24
-
-# Cross-node ping (from node4)
-oc debug node/node4.okd.sudops.pl -- chroot /host ping -c 3 192.168.10.3
-# 3 packets, 0% loss
 ```
 
-All three nodes reachable on the storage network. This is the path Rook-Ceph will use for OSD replication in the next post.
+```
+NAME            STATUS      REASON
+storage-node4   Available   SuccessfullyConfigured
+storage-node5   Available   SuccessfullyConfigured
+storage-node6   Available   SuccessfullyConfigured
+```
+
+Cross-node ping from node4 over the storage network:
+
+```
+[core@node4 ~]$ ping -c2 192.168.10.3 && ping -c2 192.168.10.4
+PING 192.168.10.3 (192.168.10.3) 56(84) bytes of data.
+64 bytes from 192.168.10.3: icmp_seq=1 ttl=64 time=0.196 ms
+64 bytes from 192.168.10.3: icmp_seq=2 ttl=64 time=0.081 ms
+
+--- 192.168.10.3 ping statistics ---
+2 packets transmitted, 2 received, 0% packet loss, time 1047ms
+rtt min/avg/max/mdev = 0.081/0.138/0.196/0.057 ms
+PING 192.168.10.4 (192.168.10.4) 56(84) bytes of data.
+64 bytes from 192.168.10.4: icmp_seq=1 ttl=64 time=0.296 ms
+64 bytes from 192.168.10.4: icmp_seq=2 ttl=64 time=0.233 ms
+
+--- 192.168.10.4 ping statistics ---
+2 packets transmitted, 2 received, 0% packet loss, time 1022ms
+rtt min/avg/max/mdev = 0.233/0.264/0.296/0.031 ms
+```
+
+Sub-millisecond latency across the CRS317 switch fabric. All three nodes reachable on the storage network — this is the path Rook-Ceph will use for OSD replication in the next post.
 
 ## What was committed
 
