@@ -77,7 +77,7 @@ The blog is a homelab series. Posts use a parent/subpost pattern where topics wi
 - `homelab-network-impl/` — Parent + subposts: `phase0.mdx`, post-SNO *(future)*
 - `homelab-validation/` — Parent + subposts: `hardware.mdx`, `sno.mdx`
 - `homelab-day1/` — Standalone post (OKD 3-node cluster installation)
-- `homelab-day2/` — Parent + subposts: `bootstrap.mdx`, `cert-manager.mdx`, storage-network *(future)*, rook-ceph *(future)*
+- `homelab-day2/` — Parent + subposts: `bootstrap.mdx`, `cert-manager.mdx`, `storage-network.mdx`, rook-ceph *(future)*
 
 When converting raw drafts to MDX:
 - Strip social media drafts (LinkedIn/Slack/Reddit) from the end
