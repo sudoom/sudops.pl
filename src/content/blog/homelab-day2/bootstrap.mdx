@@ -16,6 +16,7 @@ The [3-node cluster](/blog/homelab-day1) is running. Before touching storage, ne
 OKD ships with `community-operators` — the OperatorHub.io catalog built for vanilla Kubernetes. For OKD-native operators, there's [OKDerators](https://github.com/okd-project/okderators-catalog-index) — built and tested for OKD/SCOS, maintained by the OKD working group. The plan from the start: use OKDerators for everything it provides.
 
 ```yaml
+# bootstrap/phase0/01_catalog_source.yaml
 apiVersion: operators.coreos.com/v1alpha1
 kind: CatalogSource
 metadata:
@@ -40,6 +41,7 @@ The Software Catalog jumps from 284 to 307 operators:
 ## GitOps operator
 
 ```yaml
+# bootstrap/phase0/02_gitops_operator.yaml
 apiVersion: operators.coreos.com/v1alpha1
 kind: Subscription
 metadata:
@@ -70,6 +72,7 @@ oc get secret openshift-gitops-cluster -n openshift-gitops \
 The operator may not auto-grant `cluster-admin` to the ArgoCD service accounts. Without it, ArgoCD can't create CRDs, namespaces, or ClusterRoles:
 
 ```yaml
+# bootstrap/phase0/03_cluster_admin_rbac.yaml
 apiVersion: rbac.authorization.k8s.io/v1
 kind: ClusterRoleBinding
 metadata:
@@ -147,6 +150,7 @@ homelab/
 The root Application renders one ArgoCD Application per enabled entry:
 
 ```yaml
+# bootstrap/root-app/templates/applications.yaml
 {{- range $name, $app := .Values.applications }}
 {{- if $app.enabled }}
 ---
@@ -235,7 +239,7 @@ metadata:
 At bootstrap time, this is the only enabled app in `values.yaml`:
 
 ```yaml
-# bootstrap/root-app/values.yaml (bootstrap state)
+# bootstrap/root-app/values.yaml
 global:
   repoURL: git@github.com:sudoom/homelab.git
   targetRevision: master
