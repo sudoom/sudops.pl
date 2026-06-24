@@ -19,6 +19,8 @@ npm run build && git add . && git commit -m "your message" && git push origin ma
 
 You can verify the result at https://sudops.pl after the Cloudflare build completes.
 
+**Commit messages:** never add a Claude/AI attribution trailer (no `Co-Authored-By: Claude …`, no `🤖 Generated with…`). Keep messages plain and authored by the repo owner.
+
 ### Cloudflare Environment Variables
 - `BREVO_API_KEY` — Brevo API key for newsletter
 - `BREVO_LIST_ID` — Brevo mailing list ID
