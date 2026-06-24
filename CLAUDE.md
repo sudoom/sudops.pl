@@ -85,6 +85,8 @@ When converting raw drafts to MDX:
 - Use ` ```routeros ` for MikroTik/RouterOS config blocks (custom TextMate grammar in `src/grammars/`), `bash` for pure shell commands, plain ` ``` ` for terminal output with prompts
 - Images go in the same directory as the post, referenced with `./filename.png`
 - Use first person ("I"), never "we" — this is a personal blog
+- **Post `date` is the publish date, not the narrative date.** When a draft goes live, set its `date` (and each subpost's) to the day it's published — current date, not when the work happened. Bump stale dates right before merging (see the `chore: update … post date` commits). Subpost sequence is held by the `order` field, so same-day dates across a batch are fine.
+- **MDX code-fence gotcha:** put raw Helm/Go `{{ ... }}` templates directly in the code fence. Do **not** wrap them in `{`...`}` JSX-expression containers — fenced code is literal in MDX, so the wrapper renders as stray backtick-brace characters.
 - Keep prose tight and conversational. Avoid textbook-style explanations — assume the reader has context. If something can be said in one sentence, don't use three.
 - Prefer simple words over fancy ones (e.g. "leftovers" not "remnants", "locked down" not "walled garden", "can't be changed" not "immutable", "removes" not "eliminates")
 - **MDX gotcha:** `<` followed by a digit (e.g. `<100 ms`, `<1 ms`) gets parsed as a JSX tag and breaks the build. Use "under 100 ms" or "less than 1 ms" instead.
