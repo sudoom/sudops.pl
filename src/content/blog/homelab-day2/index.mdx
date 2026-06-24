@@ -20,8 +20,8 @@ Day 2 breaks into four stages, each building on the last:
 
 <Callout title="Day 2 stages" variant="summary">
   1. **[Bootstrap](/blog/homelab-day2/bootstrap)** — OKDerators catalog, GitOps operator, ArgoCD instance, Git repo structure with App-of-Apps pattern. The foundation everything else depends on.
-  2. **[cert-manager](/blog/homelab-day2/cert-manager)** — TLS certificates via Cloudflare DNS-01. Browser-trusted wildcard for `*.apps.okd.sudops.pl`. No more self-signed warnings.
-  3. **[Storage Network](/blog/homelab-day2/storage-network)** — NMState operator, per-node NNCPs for the 10GbE Mellanox ports on VLAN 10. The dedicated Ceph replication path.
+  2. **cert-manager** — TLS certificates via Cloudflare DNS-01. Browser-trusted wildcard for `*.apps.okd.sudops.pl`. No more self-signed warnings. *(coming soon)*
+  3. **Storage Network** — NMState operator, per-node NNCPs for the 10GbE Mellanox ports on VLAN 10. The dedicated Ceph replication path. *(coming soon)*
   4. **Rook-Ceph** — NVMe fast pool with replica-3, StorageClasses, dashboard. *(coming soon)*
 </Callout>
 
