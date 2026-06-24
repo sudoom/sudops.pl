@@ -19,6 +19,8 @@ npm run build && git add . && git commit -m "your message" && git push origin ma
 
 You can verify the result at https://sudops.pl after the Cloudflare build completes.
 
+**Commit messages:** never add a Claude/AI attribution trailer (no `Co-Authored-By: Claude …`, no `🤖 Generated with…`). Keep messages plain and authored by the repo owner.
+
 ### Cloudflare Environment Variables
 - `BREVO_API_KEY` — Brevo API key for newsletter
 - `BREVO_LIST_ID` — Brevo mailing list ID
@@ -77,7 +79,7 @@ The blog is a homelab series. Posts use a parent/subpost pattern where topics wi
 - `homelab-network-impl/` — Parent + subposts: `phase0.mdx`, post-SNO *(future)*
 - `homelab-validation/` — Parent + subposts: `hardware.mdx`, `sno.mdx`
 - `homelab-day1/` — Standalone post (OKD 3-node cluster installation)
-- `homelab-day2/` — Parent + subposts: `bootstrap.mdx`, `cert-manager.mdx`, `storage-network.mdx`, `rook-ceph.mdx` *(future)*
+- `homelab-day2/` — Parent + subposts: `bootstrap.mdx`, `cert-manager.mdx`, `storage-network.mdx`, rook-ceph *(future)*
 
 When converting raw drafts to MDX:
 - Strip social media drafts (LinkedIn/Slack/Reddit) from the end
@@ -85,6 +87,8 @@ When converting raw drafts to MDX:
 - Use ` ```routeros ` for MikroTik/RouterOS config blocks (custom TextMate grammar in `src/grammars/`), `bash` for pure shell commands, plain ` ``` ` for terminal output with prompts
 - Images go in the same directory as the post, referenced with `./filename.png`
 - Use first person ("I"), never "we" — this is a personal blog
+- **Post `date` is the publish date, not the narrative date.** When a draft goes live, set its `date` (and each subpost's) to the day it's published — current date, not when the work happened. Bump stale dates right before merging (see the `chore: update … post date` commits). Subpost sequence is held by the `order` field, so same-day dates across a batch are fine.
+- **MDX code-fence gotcha:** put raw Helm/Go `{{ ... }}` templates directly in the code fence. Do **not** wrap them in `{`...`}` JSX-expression containers — fenced code is literal in MDX, so the wrapper renders as stray backtick-brace characters.
 - Keep prose tight and conversational. Avoid textbook-style explanations — assume the reader has context. If something can be said in one sentence, don't use three.
 - Prefer simple words over fancy ones (e.g. "leftovers" not "remnants", "locked down" not "walled garden", "can't be changed" not "immutable", "removes" not "eliminates")
 - **MDX gotcha:** `<` followed by a digit (e.g. `<100 ms`, `<1 ms`) gets parsed as a JSX tag and breaks the build. Use "under 100 ms" or "less than 1 ms" instead.
