@@ -264,6 +264,33 @@ applications:
 
 ## Apply the root Application
 
+This is the one Application I apply by hand — it points ArgoCD at the `bootstrap/root-app` chart, which renders everything else:
+
+```yaml
+# bootstrap/phase0/05_root_application.yaml
+apiVersion: argoproj.io/v1alpha1
+kind: Application
+metadata:
+  name: root-app
+  namespace: openshift-gitops
+spec:
+  project: default
+  source:
+    repoURL: git@github.com:sudoom/homelab.git
+    targetRevision: master
+    path: bootstrap/root-app
+    helm:
+      valueFiles:
+        - values.yaml
+  destination:
+    server: https://kubernetes.default.svc
+    namespace: openshift-gitops
+  syncPolicy:
+    automated:
+      prune: true
+      selfHeal: true
+```
+
 Last manual `oc apply`:
 
 ```bash
