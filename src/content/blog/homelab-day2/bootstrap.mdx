@@ -147,7 +147,7 @@ homelab/
 The root Application renders one ArgoCD Application per enabled entry:
 
 ```yaml
-{`{{- range $name, $app := .Values.applications }}
+{{- range $name, $app := .Values.applications }}
 {{- if $app.enabled }}
 ---
 apiVersion: argoproj.io/v1alpha1
@@ -186,7 +186,7 @@ spec:
         factor: 2
         maxDuration: 3m
 {{- end }}
-{{- end }}`}
+{{- end }}
 ```
 
 Every syncPolicy option earns its place:
@@ -219,7 +219,7 @@ nodes:
 
 ```yaml
 # components/cluster-config/node-labels/templates/node-labels.yaml
-{`{{- range .Values.nodes }}
+{{- range .Values.nodes }}
 ---
 apiVersion: v1
 kind: Node
@@ -229,7 +229,7 @@ metadata:
     {{- range $key, $value := .labels }}
     {{ $key }}: {{ $value | quote }}
     {{- end }}
-{{- end }}`}
+{{- end }}
 ```
 
 At bootstrap time, this is the only enabled app in `values.yaml`:
