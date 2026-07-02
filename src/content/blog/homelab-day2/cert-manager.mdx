@@ -89,7 +89,7 @@ Without `--dns01-recursive-nameservers-only`, cert-manager uses the cluster's DN
 
 ## The one manual step: Cloudflare API token
 
-cert-manager needs a Cloudflare API token to create DNS-01 challenge TXT records. This secret can't live in Git (it's a credential), so it's the one manual step outside the pipeline:
+cert-manager needs a Cloudflare API token to create DNS-01 challenge TXT records. This secret can't live in Git as plaintext (it's a credential), so it's the one manual step outside the pipeline:
 
 ```bash
 oc create secret generic cloudflare-api-token \
@@ -98,6 +98,8 @@ oc create secret generic cloudflare-api-token \
 ```
 
 The token needs `Zone:DNS:Edit` permission for `sudops.pl`. Create it in the Cloudflare dashboard under My Profile → API Tokens → Create Token → Edit zone DNS.
+
+*Later I fold this into a SealedSecret so even the token lives in Git — for now, it's the one manual step.*
 
 ## Wave 2: ClusterIssuer and Certificates
 
