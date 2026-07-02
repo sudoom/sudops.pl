@@ -1,11 +1,10 @@
 ---
 title: 'cert-manager: Browser-Trusted TLS via GitOps'
 description: "Let's Encrypt wildcard certificates via Cloudflare DNS-01, deployed entirely through ArgoCD. One git push replaces the self-signed ingress and API certs."
-date: 2026-06-24
+date: 2026-07-01
 tags: ['homelab', 'okd', 'kubernetes', 'tls', 'cert-manager', 'gitops']
 authors: ['vd']
 order: 2
-draft: true
 ---
 
 import Callout from '@/components/Callout.astro'
@@ -74,6 +73,7 @@ sourceNamespace: openshift-marketplace
 The `CertManager` CR has one important override:
 
 ```yaml
+# components/operators/cert-manager/templates/operator.yaml
 apiVersion: operator.openshift.io/v1alpha1
 kind: CertManager
 metadata:
@@ -133,6 +133,7 @@ Two certificates:
 The ClusterIssuer uses ACME with Cloudflare DNS-01:
 
 ```yaml
+# components/cluster-config/cert-manager-config/templates/clusterissuer.yaml
 apiVersion: cert-manager.io/v1
 kind: ClusterIssuer
 metadata:
@@ -162,6 +163,7 @@ Two patches, both in wave 3 (after certificates are issued):
 **Ingress controller** — tells the default ingress to use the wildcard cert instead of the self-signed one:
 
 ```yaml
+# components/cluster-config/ingress-controller/templates/ingress-controller.yaml
 apiVersion: operator.openshift.io/v1
 kind: IngressController
 metadata:
@@ -175,6 +177,7 @@ spec:
 **API server** — adds the API cert as a named certificate:
 
 ```yaml
+# components/cluster-config/api-server/templates/api-server.yaml
 apiVersion: config.openshift.io/v1
 kind: APIServer
 metadata:
@@ -229,6 +232,7 @@ No more clicking through certificate warnings. No private CA to distribute to de
 Four entries added to `bootstrap/root-app/values.yaml`:
 
 ```yaml
+# bootstrap/root-app/values.yaml
 cert-manager-operator:
   enabled: true
   path: components/operators/cert-manager
@@ -256,4 +260,4 @@ api-server:
 
 One `git push`. ArgoCD synced all four. The only thing outside Git is the Cloudflare API token Secret.
 
-Next: [storage network](/blog/homelab-day2/storage-network) — NMState NNCPs for the 10GbE Mellanox ports.
+Next up: storage network — NMState NNCPs for the 10GbE Mellanox ports. *(coming soon)*
