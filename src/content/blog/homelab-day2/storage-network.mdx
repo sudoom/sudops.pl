@@ -1,11 +1,10 @@
 ---
 title: 'Storage Network: 10GbE on VLAN 10 via NMState'
 description: 'NMState operator for declarative host networking, per-node NNCPs for static IPs on the Mellanox 10GbE ports — the dedicated Ceph replication path.'
-date: 2026-06-24
+date: 2026-07-09
 tags: ['homelab', 'okd', 'kubernetes', 'networking', 'nmstate', 'bare-metal']
 authors: ['vd']
 order: 3
-draft: true
 ---
 
 import Callout from '@/components/Callout.astro'
@@ -26,7 +25,7 @@ This is why I deferred NIC configuration to day 2 instead of baking it into the 
 
 NMState is in OKDerators, but its bundle is currently broken on OKD 4.20. The NMState operator bundle contains an `ImageStream` resource (`image.openshift.io/v1`) — a build artifact from the OpenShift pipeline that isn't needed at runtime. OKD's OLM doesn't support ImageStreams, so the InstallPlan fails immediately with `UnsupportedResource`. The CSV, CRDs, and RBAC are all fine — it's just the ImageStream blocking the install.
 
-I [filed an issue](https://github.com/okd-project/okderators-catalog-index/issues/45) upstream. Until the bundle is fixed, NMState comes from `operatorhubio-catalog` instead:
+I [filed an issue](https://github.com/okd-project/okderators-catalog-index/issues/45) and [sent the fix](https://github.com/okd-project/okd-operator-pipeline/pull/19) — stopping the build pipeline from injecting that ImageStream into the bundle in the first place, since merged upstream. When I set this up the bundle was still broken, though, so NMState comes from `operatorhubio-catalog` instead:
 
 ```yaml
 # components/operators/nmstate/values.yaml
@@ -39,6 +38,7 @@ sourceNamespace: openshift-marketplace
 The operator chart creates the namespace (with pod security labels), OperatorGroup, Subscription, and the `NMState` CR that triggers daemon deployment on every node:
 
 ```yaml
+# components/operators/nmstate/templates/operator.yaml
 apiVersion: nmstate.io/v1
 kind: NMState
 metadata:
@@ -77,6 +77,7 @@ nodes:
 The template generates one NNCP per node:
 
 ```yaml
+# components/cluster-config/nmstate-nncp/templates/nncp.yaml
 {{- range .Values.nodes }}
 ---
 apiVersion: nmstate.io/v1
@@ -175,6 +176,7 @@ Sub-millisecond latency across the CRS317 switch fabric. All three nodes reachab
 Two entries in `values.yaml`:
 
 ```yaml
+# bootstrap/root-app/values.yaml
 nmstate-operator:
   enabled: true
   path: components/operators/nmstate
