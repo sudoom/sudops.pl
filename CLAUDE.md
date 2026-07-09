@@ -117,3 +117,31 @@ When formatting raw drafts from `posts/`, consult these examples for proper fron
 
 ### Prettier Config
 Semi-colon free, single quotes. Plugins: astro, tailwindcss, astro-organize-imports.
+
+## Source material — homelab repo + vault
+
+This blog documents a real homelab. When writing or updating a post, the canonical source material lives in two companion repos (read access whitelisted in `.claude/settings.local.json` — kept there, gitignored, so the local paths stay out of this public repo).
+
+### Homelab GitOps repo — `/Users/vadzimdziadziulia-laptop/Projects/homelab` ([sudoom/homelab](https://github.com/sudoom/homelab))
+
+- **`blog/*-draft.md`** — session working notes / draft posts written *as the work happened*. **These are the upstream raw material.** The `posts/*.md` raw drafts in THIS repo derive from them. When a relevant draft exists there, start from it rather than re-deriving the chronology.
+- **Actual manifests / Helm values / `README.md` / `CLAUDE.md`** — **ground truth** for commands, version pins, file paths, sync-wave order. Verify technical claims against the real repo, not memory (e.g. OKD version, cert-manager version, Helm values, node IPs). The repo's own `CLAUDE.md` "Stack and tool versions" table is the version source of truth.
+- **`bugs/*.md`** — drafted upstream issues; good material for "here's a bug I hit" post sections.
+
+### Obsidian vault — `/Users/vadzimdziadziulia-laptop/Library/Mobile Documents/iCloud~md~obsidian/Documents/Notatki`
+
+- **`_memory/chats/homelab/`** — the **decision rationale / "why"** behind the homelab choices (NAS build, Ceph drive selection, network design, Syno→TrueNAS migration). Mine these for the narrative/why sections that the dry repo configs don't capture.
+- **`Infrastructure/Homelab.md`** (operating state: IP/VLAN/rack) and **`wiki/domains/Homelab.md`** (concept/entity hub).
+
+### Pipeline
+
+```
+homelab/blog/*-draft.md   →   sudops.pl/posts/*.md   →   sudops.pl/src/content/blog/*.mdx
+(raw session chronology)      (gitignored raw draft)     (published, formatted MDX)
+vault/_memory/chats/homelab/  ──(the "why")──┘
+```
+
+### Guardrails
+
+- **Don't publish secrets.** Drafts may reference tokens/keys/internal IPs the homelab `CLAUDE.md` "Blog notes" rule flags as not-for-commit. Reference them by name; never paste real credentials or kubeconfigs into a post.
+- Keep the existing post conventions (first person, tight prose, `routeros` code fences, `<Callout>` variants, the `<`-digit MDX gotcha).
