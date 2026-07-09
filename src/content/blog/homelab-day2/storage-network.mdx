@@ -25,7 +25,7 @@ This is why I deferred NIC configuration to day 2 instead of baking it into the 
 
 NMState is in OKDerators, but its bundle is currently broken on OKD 4.20. The NMState operator bundle contains an `ImageStream` resource (`image.openshift.io/v1`) — a build artifact from the OpenShift pipeline that isn't needed at runtime. OKD's OLM doesn't support ImageStreams, so the InstallPlan fails immediately with `UnsupportedResource`. The CSV, CRDs, and RBAC are all fine — it's just the ImageStream blocking the install.
 
-I [filed an issue](https://github.com/okd-project/okderators-catalog-index/issues/45) upstream. Until the bundle is fixed, NMState comes from `operatorhubio-catalog` instead:
+I [filed an issue](https://github.com/okd-project/okderators-catalog-index/issues/45) and [sent the fix](https://github.com/okd-project/okd-operator-pipeline/pull/19) — stopping the build pipeline from injecting that ImageStream into the bundle in the first place, since merged upstream. When I set this up the bundle was still broken, though, so NMState comes from `operatorhubio-catalog` instead:
 
 ```yaml
 # components/operators/nmstate/values.yaml
