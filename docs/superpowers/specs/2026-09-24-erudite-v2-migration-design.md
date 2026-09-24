@@ -42,7 +42,10 @@ Success means:
 | Upstream demo content: `src/content/blog/introducing-v2/**`, `src/content/blog/v1-posts/**`, `src/content/authors/enscribe.md`, `src/content/projects/project-{a,b,c}.md`, `src/content/projects/placeholder.png` | Delete |
 | v1-only code upstream removed: Tailwind components, `src/components/ui/**`, `src/components/react/**`, `src/lib/data-utils.ts`, `src/types.ts`, `src/styles/global.css`, `public/fonts/**` (Geist; v2 ships IBM Plex in `src/assets/fonts/`), `patches/**` | Delete |
 | Our v1-only components: `BomPieChart.tsx`, `FeaturedProjects.astro` (unused), `TechStack.astro` (re-created in v2 style) | Delete |
-| `bun.lock` | Delete; regenerate `package-lock.json` with `npm install` |
+| `bun.lock`, our v1 `package-lock.json` | Delete; regenerate `package-lock.json` with `npm install` |
+| `README.md`, `LICENSE`, `.gitattributes` (never edited on our side) | Upstream version |
+| `.gitignore` | Ours (superset of upstream's; adds `.claude/`, `.vscode/`, `posts/`) |
+| `test-content/` (v1 reference posts that `CLAUDE.md` points to) | Replace with upstream's v2 demo content (`src/content/{blog,authors,projects}` → `test-content/`), so it stays a correct reference |
 
 3. The merge commit is the first commit on the branch. Each porting step below is its own commit.
 
@@ -73,7 +76,7 @@ Success means:
   Done by script, then the full diff is reviewed by hand. v2 renders titled callouts as "Note (X)".
 - BOM chart: replace `<BomPieChart client:load />` in `homelab-bom/post-sno.md` with `<bom-chart></bom-chart>` plus an inline `<script>` that defines it (guarded by `customElements.get`, since v2 re-runs body scripts on navigation). It renders an SVG doughnut with the same four slices and colours (Compute 14,180 PLN `#3266ad`, Network 3,964.90 `#c47a2a`, NICs 839.97 `#7c5cbf`, Storage 618 `#2a8a5a`), percentage labels, a legend ("name pct% — amount PLN"), and a hover tooltip, readable in both themes.
 - Heading anchors: v2 namespaces subpost heading IDs (`#references` in `phase0.md` → `#phase0-references`). Update the one internal anchor link, `homelab-network-impl/phase0` line 97 (`](#references)`), to the ID that appears in the built HTML.
-- Author `vd.md`: move `website`, `github`, `linkedin` into `socials: { Website, GitHub, LinkedIn }`; keep `name`, `avatar`, `mail`.
+- Author `vd.md`: move `website`, `github`, `linkedin` into `socials: { website, github, linkedin }` (lowercase keys — v2's `AuthorCard` maps `website`/`github` to icons and shows a generic link icon for others); keep `name`, `avatar`, `mail`.
 - Nothing else needs converting: no emoji shortcodes, no math, no `{…}` JSX expressions. `$VAR` and `<placeholder>` strings are all inside code, so they stay literal.
 
 ## 3. Pages and site pieces
@@ -82,7 +85,7 @@ Success means:
   - `SITE`: title `sudops.pl`, current description, `locale: 'en-US'`, `dir: 'ltr'`, `defaultPageImage` and `defaultPostImage` both `/static/1200x630.png` (the OG image the site uses today).
   - `NAVIGATION`: Blog, Projects, Tags. `/authors` pages still build (upstream) but are not in the nav.
   - `SOCIALS`: GitHub, LinkedIn, Email (`mailto:root@sudoom.pl`), RSS. Add `src/assets/icons/linkedin.svg`.
-- Sidebar logo: v2's `Sidebar.astro` inlines `src/assets/logo.svg` into every page, and both current SVG logos are 1–2.6 MB PNG wrappers, so neither can be used as-is. Replace `src/assets/logo.svg` with a small SVG that wraps the 96 px Great Wave mark (`public/favicon-96x96.png`, base64). `Sidebar.astro` stays identical to upstream.
+- Sidebar logo: v2's `Sidebar.astro` inlines `src/assets/logo.svg` into every page, and both current SVG logos are 1–2.6 MB PNG wrappers, so neither can be used as-is. Replace `src/assets/logo.svg` with a small SVG that wraps the Great Wave mark (`public/favicon-96x96.png` scaled to 36 px — 2× the 18 px the sidebar renders — as base64). `Sidebar.astro` stays identical to upstream.
 - Homepage `src/pages/index.astro`, v2 CSS conventions (scoped `<style>`, v2 spacing/type tokens, no Tailwind):
   1. Intro: "Vadzim Dziadziulia", "Navigator of Kubernetes Seas", current blurb.
   2. `src/components/HeroSea.astro` from `origin/main-page`, wrapper classes `overflow-hidden rounded-lg` replaced with scoped CSS.
@@ -111,11 +114,11 @@ Update `CLAUDE.md` for v2: stack, `.md` content, `:::variant[Title]` callouts an
 2. URL parity: record the route list from a `main` build before starting; every route, plus `/rss.xml` and `/sitemap-index.xml`, exists in the new `dist/`.
 3. Content check on `dist/`: 58 rendered callouts (`data-callout`), no leftover `<Callout` or literal `:::` text, RouterOS blocks highlighted (no unknown-language fallback in the build log).
 4. Browser pass on the dev server: homepage (hero, chips, latest posts), scrolling a series (`/blog/homelab-design`) with the URL following along, BOM chart hover in light and dark, a RouterOS block, privacy and terms, phone width.
-5. Push `erudite-v2` and check the Cloudflare Pages preview deployment.
+5. Push `erudite-v2`; Cloudflare Pages builds it automatically to **https://erudite-v2.sudops-pl.pages.dev/** — check it there.
 
 ### Rollout
 
-PR `erudite-v2` → `main`, merged with "Create a merge commit". sudops.pl is unchanged until then.
+Production is **https://sudops.pl**, deployed from `main`. PR `erudite-v2` → `main`, merged with "Create a merge commit". Production is unchanged until then.
 
 ## Out of scope
 
