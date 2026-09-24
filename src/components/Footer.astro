@@ -7,6 +7,8 @@ import { SITE, SOCIALS } from "@/consts"
   <p>
     &copy; {new Date().getFullYear()}
     {SITE.title}
+    · <a href="/privacy">Privacy Policy</a> ·
+    <a href="/terms">Terms</a>
   </p>
   <SocialIcons links={SOCIALS} />
 </footer>
@@ -26,6 +28,14 @@ import { SITE, SOCIALS } from "@/consts"
     p {
       font-size: var(--step--1);
       color: var(--muted-foreground);
+    }
+
+    a {
+      color: inherit;
+
+      &:hover {
+        color: var(--foreground);
+      }
     }
   }
 </style>

@@ -12,7 +12,9 @@ import { headingNamespace } from "./src/lib/heading-namespace"
 import { headingAnchors } from "./src/lib/heading-anchors"
 
 export default defineConfig({
-  site: "https://astro-erudite.vercel.app",
+  site: "https://sudops.pl",
+  server: { port: 1234, host: true },
+  devToolbar: { enabled: false },
   compressHTML: true,
   prefetch: { prefetchAll: true },
   integrations: [
