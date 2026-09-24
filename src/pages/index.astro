@@ -1,69 +1,67 @@
 ---
+import Azure from "@/assets/icons/tech/azure.svg"
+import GoogleCloud from "@/assets/icons/tech/google-cloud.svg"
+import Kubernetes from "@/assets/icons/tech/kubernetes.svg"
+import OpenShift from "@/assets/icons/tech/openshift.svg"
+import Terraform from "@/assets/icons/tech/terraform.svg"
+import BlogCard from "@/components/BlogCard.astro"
+import HeroSea from "@/components/HeroSea.astro"
 import MetaPage from "@/components/MetaPage.astro"
 import Layout from "@/layouts/Layout.astro"
+import { getPosts } from "@/lib/content"
+
+const STACK = [
+  { name: "Kubernetes", icon: Kubernetes },
+  { name: "Openshift", icon: OpenShift },
+  { name: "Google Anthos", icon: GoogleCloud },
+  { name: "Terraform", icon: Terraform },
+  { name: "Azure", icon: Azure },
+]
+
+const latest = (await getPosts()).slice(0, 2)
 ---
 
 <Layout>
   <MetaPage slot="head" />
-  <dictionary-entry>
-    <h1>er·u·dite</h1>
-    <etymology-span>
-      <ipa-span>/ˈer(y)əˌdīt/</ipa-span>
-      adj. [L. <i>ēruditus</i>, instructed, pp. of <i>ērudīre</i> to instruct,
-      polish, lit. to free from roughness, f. ē- out + <i>rudis</i> rough,
-      untrained]
-    </etymology-span>
-    <ol>
-      <li>
-        having or showing deep, wide-ranging knowledge acquired through study;
-        learned (<i>an erudite scholar</i>).
-      </li>
-      <li>
-        (of writing, speech, or argument) reflecting such knowledge; scholarly (<i
-          >an erudite footnote</i
-        >).
-      </li>
-    </ol>
-    <hr>
-    <prose-content>
-      <p>
-        astro-erudite is
-        <a href="https://enscribe.dev" target="_blank" rel="noopener noreferrer"
-          >enscribe</a
-        >'s opinionated, unstyled static blogging template built with
-        <a href="https://astro.build" target="_blank" rel="noopener noreferrer"
-          >Astro</a
-        >
-        and native CSS. astro-erudite uses no UI or CSS framework and contains
-        minimal dependencies.
-      </p>
-      <p>
-        To use this template, check out the
-        <a
-          href="https://github.com/jktrn/astro-erudite"
-          target="_blank"
-          rel="noopener noreferrer"
-          >GitHub</a
-        >
-        repository. To learn more about why this template exists, read this blog
-        post: <a href="/blog/introducing-v2">Introducing astro-erudite v2</a>.
-      </p>
-    </prose-content>
-  </dictionary-entry>
+  <home-intro>
+    <h1>Vadzim Dziadziulia</h1>
+    <p data-tagline>Navigator of Kubernetes Seas</p>
+    <p>
+      Charting courses through bare-metal clusters,
+      <strong>Kubernetes infrastructure</strong>, and everything beneath the
+      waterline.
+    </p>
+  </home-intro>
+
+  <HeroSea />
+
+  <section>
+    <h2>Tech Stack</h2>
+    <ul data-stack>
+      {STACK.map(({ name, icon: Icon }) => (
+          <li>
+            <Icon aria-hidden="true" />
+            <span>{name}</span>
+          </li>
+        ))}
+    </ul>
+  </section>
+
+  <section>
+    <h2>Latest Posts</h2>
+    <ul data-posts>
+      {latest.map((post) => <BlogCard post={post} />)}
+    </ul>
+    <a href="/blog" data-more>See all posts &rarr;</a>
+  </section>
 </Layout>
 
 <style>
-  dictionary-entry {
+  home-intro {
     display: block;
-    font-size: var(--step-0);
-    color: var(--muted-foreground);
 
     @media (width >= 64rem) {
       margin-block-start: -0.2em;
-    }
-
-    ipa-span {
-      opacity: 0.6;
     }
 
     h1 {
@@ -71,38 +69,71 @@ import Layout from "@/layouts/Layout.astro"
       line-height: calc(var(--leading-offset) + 1em);
       font-weight: var(--font-weight-medium);
       color: var(--foreground);
-      margin-block-end: var(--space-2xs);
     }
 
-    ol {
+    [data-tagline] {
+      margin-block-start: var(--space-3xs);
+      font-size: var(--step-1);
+      color: var(--muted-foreground);
+    }
+
+    p:last-child {
       margin-block-start: var(--space-xs);
-      list-style: none;
+      max-inline-size: var(--measure);
+      font-size: var(--step-0);
+      color: var(--muted-foreground);
+    }
+  }
 
-      li {
-        padding-inline-start: 1em;
-        text-indent: -1em;
+  section + section {
+    margin-block-start: var(--space-xl);
+  }
 
-        &::before {
-          content: counter(list-item);
-          display: inline-block;
-          inline-size: 1em;
-          text-indent: 0;
-          font-weight: var(--font-weight-medium);
-        }
+  h2 {
+    margin-block-end: var(--space-s);
+    font-size: var(--step-1);
+    font-weight: var(--font-weight-medium);
+    color: var(--foreground);
+  }
 
-        + li {
-          margin-block-start: var(--space-3xs);
-        }
+  [data-stack] {
+    display: flex;
+    flex-wrap: wrap;
+    gap: var(--space-xs);
+
+    li {
+      display: inline-flex;
+      align-items: center;
+      gap: var(--space-2xs);
+      padding: var(--space-3xs) var(--space-xs);
+      border: 1px solid var(--border);
+      border-radius: var(--radius-lg);
+      background-color: color-mix(in oklab, var(--muted) 30%, transparent);
+      font-size: var(--step--1);
+      color: var(--foreground);
+
+      svg {
+        inline-size: 1.25rem;
+        block-size: 1.25rem;
+        flex-shrink: 0;
       }
     }
+  }
 
-    hr {
-      margin-block: var(--space-m);
-      border-block-start: 2px solid var(--border);
-    }
+  [data-posts] {
+    display: flex;
+    flex-direction: column;
+    gap: var(--space-m);
+  }
 
-    prose-content {
-      margin-block-start: var(--space-xs);
+  [data-more] {
+    display: inline-block;
+    margin-block-start: var(--space-m);
+    font-size: var(--step--1);
+    color: var(--muted-foreground);
+
+    &:hover {
+      color: var(--foreground);
     }
   }
 </style>
