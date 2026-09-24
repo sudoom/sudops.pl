@@ -7,7 +7,6 @@ authors: ['vd']
 order: 3
 ---
 
-import Callout from '@/components/Callout.astro'
 
 The [bootstrap](/blog/homelab-day2/bootstrap) deployed ArgoCD and [cert-manager](/blog/homelab-day2/cert-manager) gave me trusted TLS. The cluster is still running on the onboard 1GbE NICs only. Each node has a Mellanox CX4121C with dual 10GbE SFP28 ports sitting idle — connected to the CRS317 switch but unconfigured at the OS level.
 

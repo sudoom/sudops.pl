@@ -7,19 +7,18 @@ authors: ['vd']
 order: 1
 ---
 
-import Callout from '@/components/Callout.astro'
 
 The [network design post](/blog/homelab-design/network) defined VLANs, firewall policy, and device requirements. This is where that design hits real hardware — CCR2004 router and CRS317 switch, factory reset to a working VLAN-segmented network. One node, two VLANs, two devices. Everything else waits.
 
-<Callout title="What's in scope" variant="summary">
-  - **VLAN 5 (Frontnet)** — management, SSH, DHCP, DNS. OKD API and ingress VIPs also live here for SNO.
-  - **VLAN 10 (Backnet)** — storage network. Fully isolated, no internet, no inter-VLAN routing.
-  - **Factory reset on both devices** — clean slate.
-</Callout>
+:::note[What's in scope]
+- **VLAN 5 (Frontnet)** — management, SSH, DHCP, DNS. OKD API and ingress VIPs also live here for SNO.
+- **VLAN 10 (Backnet)** — storage network. Fully isolated, no internet, no inter-VLAN routing.
+- **Factory reset on both devices** — clean slate.
+:::
 
-<Callout title="What's deferred" variant="note">
-  VLAN 20 (IoT), VLAN 30 (Guest), VLAN 40 (DMZ), LACP bonds, jumbo frames, SR-IOV. All added when the endpoints that need them exist.
-</Callout>
+:::note[What's deferred]
+VLAN 20 (IoT), VLAN 30 (Guest), VLAN 40 (DMZ), LACP bonds, jumbo frames, SR-IOV. All added when the endpoints that need them exist.
+:::
 
 ## Wait — the design said VLAN 1
 
@@ -33,9 +32,9 @@ After hours of troubleshooting — packet captures on every interface, toggling 
 
 VLAN 1 has special behavior in 802.1Q — it's the "default" VLAN, and some hardware treats it differently in the forwarding pipeline. The Marvell 98DX8216 in the CRS317 is one of those cases.
 
-<Callout title="Lesson learned" variant="danger">
-  Avoid VLAN 1 on MikroTik trunk links, especially between devices with different switch chips (CCR2004 uses Marvell 88E6191X, CRS317 uses Marvell 98DX8216). Use any other VLAN ID. This costs nothing and avoids a whole category of hard-to-debug forwarding issues.
-</Callout>
+:::caution[Lesson learned]
+Avoid VLAN 1 on MikroTik trunk links, especially between devices with different switch chips (CCR2004 uses Marvell 88E6191X, CRS317 uses Marvell 98DX8216). Use any other VLAN ID. This costs nothing and avoids a whole category of hard-to-debug forwarding issues.
+:::
 
 The fix: don't use VLAN 1. I picked VLAN 5. Set it as PVID on all access ports, carry it tagged on the trunk. Everything works immediately.
 
@@ -94,7 +93,7 @@ set winbox address=192.168.1.0/24
 
 ### What is bridge-lan and why does everything go into it?
 
-In MikroTik, a bridge is a virtual switch — it connects physical ports at L2. Without one, each port on the CCR2004 is isolated. Devices on ether1 can't talk to devices on ether8. Adding ports to `bridge-lan` creates a single switching domain — like plugging everything into the same unmanaged switch. VLAN filtering on top of that bridge creates the separation: ports tagged for VLAN 5 can only talk to other VLAN 5 ports, VLAN 10 only to VLAN 10, etc. If this isn't clicking, the [MikroTik VLAN videos](#references) at the bottom walk through bridges and vlan-filtering step by step.
+In MikroTik, a bridge is a virtual switch — it connects physical ports at L2. Without one, each port on the CCR2004 is isolated. Devices on ether1 can't talk to devices on ether8. Adding ports to `bridge-lan` creates a single switching domain — like plugging everything into the same unmanaged switch. VLAN filtering on top of that bridge creates the separation: ports tagged for VLAN 5 can only talk to other VLAN 5 ports, VLAN 10 only to VLAN 10, etc. If this isn't clicking, the [MikroTik VLAN videos](#phase0-references) at the bottom walk through bridges and vlan-filtering step by step.
 
 ![Bridge concept — isolated ports vs unified switching domain with VLAN filtering](./post06bridge.png)
 
@@ -109,9 +108,9 @@ The WAN interface (sfp-sfpplus1) stays **out** of the bridge on purpose. It's a 
     comment="LAN bridge — enable vlan-filtering LAST"
 ```
 
-<Callout title="vlan-filtering=no is deliberate" variant="warning">
-  The bridge is created with filtering off and enabled as the very last step, after everything else is verified. Enabling it with incorrect VLAN table entries will silently drop frames and lock you out. Every MikroTik VLAN guide warns about this. Every homelab builder learns it the hard way.
-</Callout>
+:::warning[vlan-filtering=no is deliberate]
+The bridge is created with filtering off and enabled as the very last step, after everything else is verified. Enabling it with incorrect VLAN table entries will silently drop frames and lock you out. Every MikroTik VLAN guide warns about this. Every homelab builder learns it the hard way.
+:::
 
 ```routeros
 # Synology NAS (ether2 reserved for future LACP bond)
@@ -162,9 +161,9 @@ Two VLANs, two entries. IoT/Guest/DMZ added when needed.
 /ip address add address=192.168.10.1/24 interface=vlan10-backnet  comment="Backnet gateway"
 ```
 
-<Callout title="No IP on bridge-lan" variant="important">
-  The gateway IP lives on `vlan5-frontnet`, not on the bridge directly. This is required when using VLAN 5 instead of default VLAN 1 — the DHCP server and firewall rules reference `vlan5-frontnet` as the Frontnet interface.
-</Callout>
+:::important[No IP on bridge-lan]
+The gateway IP lives on `vlan5-frontnet`, not on the bridge directly. This is required when using VLAN 5 instead of default VLAN 1 — the DHCP server and firewall rules reference `vlan5-frontnet` as the Frontnet interface.
+:::
 
 The Backnet gateway exists for diagnostics only — you can ping storage IPs from the router. Storage nodes should never use `192.168.10.1` as default route.
 
@@ -187,9 +186,9 @@ DNS static records and OKD-specific entries (API VIP, wildcard ingress) are cove
     dns-server=192.168.1.12 domain=home.lab ntp-server=192.168.1.1
 ```
 
-<Callout title="DHCP binds to vlan5-frontnet, not bridge-lan" variant="warning">
-  DHCP discovers arrive tagged as VLAN 5, so the server must listen on the VLAN 5 interface. Binding to `bridge-lan` means the server never sees the requests.
-</Callout>
+:::warning[DHCP binds to vlan5-frontnet, not bridge-lan]
+DHCP discovers arrive tagged as VLAN 5, so the server must listen on the VLAN 5 interface. Binding to `bridge-lan` means the server never sees the requests.
+:::
 
 Pool: `.50–.249`. Static infrastructure: `.2–.49`. OKD VIPs: `.253–.254`. No DHCP on Backnet — storage is static only.
 
@@ -215,9 +214,9 @@ add chain=forward action=drop in-interface=vlan10-backnet comment="Backnet: drop
 add chain=forward action=drop comment="Default drop"
 ```
 
-<Callout title="Firewall references vlan5-frontnet, not bridge-lan" variant="important">
-  Using `bridge-lan` would match traffic from all VLANs including Backnet, breaking isolation completely.
-</Callout>
+:::important[Firewall references vlan5-frontnet, not bridge-lan]
+Using `bridge-lan` would match traffic from all VLANs including Backnet, breaking isolation completely.
+:::
 
 ### NAT — why masquerade?
 
@@ -240,9 +239,9 @@ add chain=prerouting action=drop in-interface-list=WAN src-address=10.0.0.0/8
 add chain=prerouting action=drop in-interface-list=WAN src-address=172.16.0.0/12
 ```
 
-<Callout title="If your ISP router does NAT" variant="warning">
-  If your ISP router does NAT (not bridge mode) and gives the CCR2004 a `192.168.0.x` address, remove the `192.168.0.0/16` rule — it would block all return traffic.
-</Callout>
+:::warning[If your ISP router does NAT]
+If your ISP router does NAT (not bridge mode) and gives the CCR2004 a `192.168.0.x` address, remove the `192.168.0.0/16` rule — it would block all return traffic.
+:::
 
 ### Hardening — locking things down
 
@@ -267,9 +266,9 @@ MikroTik ships with several services enabled by default that you don't need and 
 /interface bridge set bridge-lan vlan-filtering=yes
 ```
 
-<Callout title="With VLAN 5, filtering must be on" variant="danger">
-  Unlike VLAN 1 setups where things partially work with filtering off, the Frontnet gateway IP lives on `vlan5-frontnet` — which only receives traffic when the bridge is actively tagging. Filtering off = dead network.
-</Callout>
+:::caution[With VLAN 5, filtering must be on]
+Unlike VLAN 1 setups where things partially work with filtering off, the Frontnet gateway IP lives on `vlan5-frontnet` — which only receives traffic when the bridge is actively tagging. Filtering off = dead network.
+:::
 
 Verify immediately: `ping 192.168.1.1` from any device.
 
@@ -302,9 +301,9 @@ The CRS317 is pure L2. No routing, no firewall — just forwarding frames betwee
 /ip dns set servers=192.168.1.12
 ```
 
-<Callout title="OOB management is your safety net" variant="tip">
-  ether1 stays outside the bridge. If VLAN filtering breaks the bridge, you can still reach the switch at `192.168.1.200` through the router's ether13. This saved the troubleshooting session that led to the VLAN 5 fix.
-</Callout>
+:::tip[OOB management is your safety net]
+ether1 stays outside the bridge. If VLAN filtering breaks the bridge, you can still reach the switch at `192.168.1.200` through the router's ether13. This saved the troubleshooting session that led to the VLAN 5 fix.
+:::
 
 ### Disable unused ports
 
@@ -395,9 +394,9 @@ sudo ip addr add 192.168.10.2/24 dev enp1s0f0np0
 sudo ip link set enp1s0f0np0 up
 ```
 
-<Callout title="Disable NetworkManager on the storage interface first" variant="warning">
-  The CRS317 trunk carries VLAN 5 alongside VLAN 10. NetworkManager will grab a DHCP lease from Frontnet on the storage interface, overwriting your static IP and putting storage traffic on the wrong subnet.
-</Callout>
+:::warning[Disable NetworkManager on the storage interface first]
+The CRS317 trunk carries VLAN 5 alongside VLAN 10. NetworkManager will grab a DHCP lease from Frontnet on the storage interface, overwriting your static IP and putting storage traffic on the wrong subnet.
+:::
 
 From the router:
 
@@ -423,9 +422,9 @@ ping -c 3 -I enp1s0f0np0 8.8.8.8
 # Expected: packet counter > 0
 ```
 
-<Callout title="Why the temporary route?" variant="note">
-  Without a default gateway on the storage interface, Linux rejects the packet locally — it never hits the wire. The explicit route forces the packet through the CRS317 trunk and into the router's forward chain, where the Backnet drop rule catches it.
-</Callout>
+:::note[Why the temporary route?]
+Without a default gateway on the storage interface, Linux rejects the packet locally — it never hits the wire. The explicit route forces the packet through the CRS317 trunk and into the router's forward chain, where the Backnet drop rule catches it.
+:::
 
 Clean up: `sudo ip route del 8.8.8.8/32 via 192.168.10.1`
 

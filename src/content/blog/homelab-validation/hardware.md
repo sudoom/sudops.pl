@@ -7,7 +7,6 @@ authors: ['vd']
 order: 1
 ---
 
-import Callout from '@/components/Callout.astro'
 
 I don't install a platform on hardware I haven't tested. The homelab community is full of "I just installed Proxmox and it worked" posts that skip the part where you check whether the NIC actually negotiates at the right PCIe width, the boot SSD isn't already worn out, and the storage tiers can handle concurrent I/O without bus conflicts.
 
@@ -69,9 +68,9 @@ Node          Model                SN                   Namespace  FW
 
 ![nvme list and lsscsi output confirming drive models and firmware](./post06nvmelssci.png)
 
-<Callout title="The PNY CS1030 is a placeholder" variant="note">
-  This is a DRAM-less consumer NVMe — fine for Phase 0 validation but unsuitable for production Ceph OSD workloads. The production drives will be enterprise-grade NVMe chosen after the BOM research is complete. The point here is proving the M.2 slot works and the drive coexists with the SATA devices.
-</Callout>
+:::note[The PNY CS1030 is a placeholder]
+This is a DRAM-less consumer NVMe — fine for Phase 0 validation but unsuitable for production Ceph OSD workloads. The production drives will be enterprise-grade NVMe chosen after the BOM research is complete. The point here is proving the M.2 slot works and the drive coexists with the SATA devices.
+:::
 
 ## SMART health
 
@@ -173,9 +172,9 @@ I first tested it on an RHCOS live image (from an earlier OpenShift evaluation).
 
 Then I switched the project from OCP to OKD. OKD 4.20 runs SCOS 10, not RHCOS. Booted CentOS Stream 10 live (same kernel as SCOS 10) — `lspci` showed the card, PCIe negotiation fine. But `ip link` showed no Mellanox interfaces. No `mlx4_core` module loaded.
 
-<Callout title="Driver removed upstream" variant="danger">
-  `mlx4_core` is not included in SCOS 10 / CentOS Stream 10 kernel (6.12). The ConnectX-3 uses the mlx4 driver family, which has been deprecated upstream. RHCOS (RHEL 9 based) still carried it. SCOS 10 (RHEL 10 lineage) does not. The hardware works — the driver simply isn't there anymore.
-</Callout>
+:::caution[Driver removed upstream]
+`mlx4_core` is not included in SCOS 10 / CentOS Stream 10 kernel (6.12). The ConnectX-3 uses the mlx4 driver family, which has been deprecated upstream. RHCOS (RHEL 9 based) still carried it. SCOS 10 (RHEL 10 lineage) does not. The hardware works — the driver simply isn't there anymore.
+:::
 
 Returned the ConnectX-3.
 
@@ -194,9 +193,9 @@ I installed it. System booted normally. Both ports detected. Everything worked.
 
 Three NICs, three different failure modes: hardware incompatibility, deprecated driver, and finally success. About a month of shipping, testing, and returning. All avoidable by checking the kernel module list against the NIC before buying — but who does that for a card that worked on the previous kernel?
 
-<Callout title="Lesson learned" variant="warning">
-  This is why you buy one NIC and validate before ordering five.
-</Callout>
+:::warning[Lesson learned]
+This is why you buy one NIC and validate before ordering five.
+:::
 
 ## NIC detection and PCIe negotiation
 
@@ -256,9 +255,9 @@ LnkSta: Speed 8GT/s, Width x8
 
 Full width. 8GT/s (PCIe 3.0), x8, no "(downgraded)" warnings. That's ~8 GB/s of PCIe bandwidth — plenty for dual 25 GbE (which tops out at ~6.25 GB/s aggregate).
 
-<Callout title="If you see downgraded width" variant="warning">
-  If LnkSta shows x4 or x1, reseat the card. The SFF riser's contact pressure can be tight. PCIe 3.0 x4 would still handle 10 GbE but would bottleneck Ceph under heavy replication.
-</Callout>
+:::warning[If you see downgraded width]
+If LnkSta shows x4 or x1, reseat the card. The SFF riser's contact pressure can be tight. PCIe 3.0 x4 would still handle 10 GbE but would bottleneck Ceph under heavy replication.
+:::
 
 ### Link speed and transceiver
 
@@ -443,9 +442,9 @@ Every check passed:
 | 11 | Memory — 64 GB DDR4-3200, dual channel | PASS | DIMM1 + DIMM2, slots 3-4 free |
 | 12 | CPU — i7-11700, VT-x, VT-d | PASS | 8C/16T, IOMMU active |
 
-<Callout title="Result: GO" variant="tip">
-  This hardware is ready for OKD.
-</Callout>
+:::tip[Result: GO]
+This hardware is ready for OKD.
+:::
 
 ![Hardware validation summary — all checks passed, result GO](./hwvalidation.png)
 

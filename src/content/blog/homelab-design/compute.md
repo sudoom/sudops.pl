@@ -7,7 +7,6 @@ authors: ['vd']
 order: 1
 ---
 
-import Callout from '@/components/Callout.astro'
 
 ## How many nodes?
 
@@ -17,19 +16,19 @@ Three nodes also gives you meaningful Ceph replication. Replication factor 3 mea
 
 The plan is phased:
 
-<Callout title="Deployment phases" variant="summary">
-  - **Phase 0: OKD Single Node (SNO).** Full OKD deployment on one machine to validate hardware, storage, and networking. If something fundamental doesn't work — NIC incompatibility, BIOS issue, storage controller conflict — better to find out on one node than three.
-  - **Phase 1: Three nodes (Nodes 4, 5, 6).** Combined control plane + worker. Each node in etcd, running OKD control plane, accepting workloads. Three nodes, three failure domains.
-  - **Phase 2: Five nodes (add Nodes 7, 8).** Worker-only nodes. Control plane stays on Nodes 4-6. More compute, more Ceph OSDs, SR-IOV networking for IoT/DMZ passthrough.
-</Callout>
+:::note[Deployment phases]
+- **Phase 0: OKD Single Node (SNO).** Full OKD deployment on one machine to validate hardware, storage, and networking. If something fundamental doesn't work — NIC incompatibility, BIOS issue, storage controller conflict — better to find out on one node than three.
+- **Phase 1: Three nodes (Nodes 4, 5, 6).** Combined control plane + worker. Each node in etcd, running OKD control plane, accepting workloads. Three nodes, three failure domains.
+- **Phase 2: Five nodes (add Nodes 7, 8).** Worker-only nodes. Control plane stays on Nodes 4-6. More compute, more Ceph OSDs, SR-IOV networking for IoT/DMZ passthrough.
+:::
 
 Why not go straight to five? Phase 0 validates hardware. Phase 1 validates architecture. Phase 2 scales it. Buying five machines before validating on one is exactly the impulse-purchase approach this series avoids.
 
 ![Phase evolution from SNO validation through 3-node cluster to 5-node cluster](./post02phaseevolution.png)
 
-<Callout title="Node numbering" variant="note">
-  Starts at Node 4 because Nodes 1-3 are existing infrastructure — the OptiPlex 7050 Micro (Node 1) and reserved IDs for future lightweight roles.
-</Callout>
+:::note[Node numbering]
+Starts at Node 4 because Nodes 1-3 are existing infrastructure — the OptiPlex 7050 Micro (Node 1) and reserved IDs for future lightweight roles.
+:::
 
 ## Sizing: CPU and memory
 
@@ -41,9 +40,9 @@ For combined control plane + worker with Ceph OSDs on the same node, I need more
 
 **CPU: 8 cores / 16 threads.** Room for the control plane, Ceph OSD processes (one per disk, two or three per node), monitoring, and actual application pods. Desktop 8-core processors are widely available in SFF chassis on the used market — specific model is a BOM decision.
 
-<Callout title="Memory sizing" variant="tip">
-  **64 GB minimum, upgradeable to 128 GB.** Each Ceph OSD uses ~4 GB RAM. Two or three OSDs per node = 8-12 GB just for storage. OKD control plane and monitoring take another 12-16 GB. That leaves 36-44 GB for workloads and VMs — okay, but not extravagant. 32 GB would choke once VMs enter the picture.
-</Callout>
+:::tip[Memory sizing]
+**64 GB minimum, upgradeable to 128 GB.** Each Ceph OSD uses ~4 GB RAM. Two or three OSDs per node = 8-12 GB just for storage. OKD control plane and monitoring take another 12-16 GB. That leaves 36-44 GB for workloads and VMs — okay, but not extravagant. 32 GB would choke once VMs enter the picture.
+:::
 
 The design requires four DIMM slots. Start with 2 x 32 GB (64 GB) for Phase 1. Once the cluster is stable and I can see actual memory pressure under real workloads, the other two slots can take another 2 x 32 GB to hit 128 GB. The upgrade decision gets made on data, not guesswork.
 
@@ -51,14 +50,14 @@ The design requires four DIMM slots. Start with 2 x 32 GB (64 GB) for Phase 1. O
 
 The chassis choice is a BOM decision. But the design sets clear requirements:
 
-<Callout title="Chassis requirements" variant="definition">
-  - **Four DIMM slots** — 64 GB at launch, path to 128 GB
-  - **At least one PCIe x8 (Gen 3) slot** — for a dual-port 10 Gbps SFP+ NIC. Most important expansion slot. Without it, storage networking is 1 Gbps and Ceph performance tanks
-  - **One M.2 NVMe slot** — fast Ceph OSD tier
-  - **One 2.5" SATA bay (or second M.2)** — boot drive, separate from Ceph
-  - **One 3.5" drive bay** — slow Ceph OSD tier, large HDD. This alone rules out micro/ultra-compact form factors
-  - **Desktop-class TDP** — 65W, not 150W+
-</Callout>
+:::note[Chassis requirements]
+- **Four DIMM slots** — 64 GB at launch, path to 128 GB
+- **At least one PCIe x8 (Gen 3) slot** — for a dual-port 10 Gbps SFP+ NIC. Most important expansion slot. Without it, storage networking is 1 Gbps and Ceph performance tanks
+- **One M.2 NVMe slot** — fast Ceph OSD tier
+- **One 2.5" SATA bay (or second M.2)** — boot drive, separate from Ceph
+- **One 3.5" drive bay** — slow Ceph OSD tier, large HDD. This alone rules out micro/ultra-compact form factors
+- **Desktop-class TDP** — 65W, not 150W+
+:::
 
 ![Storage tier layout within a single node](./post02nodestoragetiers.png)
 
@@ -93,28 +92,28 @@ Phase 2 doesn't change the model — still three FDs. Nodes 7 and 8 join FD-A an
 
 ## What's not decided yet
 
-<Callout title="Deferred to Bill of Materials" variant="note">
-  - **Chassis make and model** — design defines requirements. Multiple vendors meet this. Choice depends on market availability and compatibility.
-  - **HDD model and capacity** — need large HDDs for slow Ceph tier. Depends on pricing and availability.
-  - **DDR4 frequency** — various speeds work. Difference between DDR4-2400 and DDR4-3200 is negligible for this workload.
-  - **NIC model** — The design requires a 10 Gbps NIC in each node. Connector type (SFP+, RJ45 10GbE), port count, and specific model are procurement decisions for the BOM post.
+:::note[Deferred to Bill of Materials]
+- **Chassis make and model** — design defines requirements. Multiple vendors meet this. Choice depends on market availability and compatibility.
+- **HDD model and capacity** — need large HDDs for slow Ceph tier. Depends on pricing and availability.
+- **DDR4 frequency** — various speeds work. Difference between DDR4-2400 and DDR4-3200 is negligible for this workload.
+- **NIC model** — The design requires a 10 Gbps NIC in each node. Connector type (SFP+, RJ45 10GbE), port count, and specific model are procurement decisions for the BOM post.
 
-  These aren't gaps — they're the boundary between design and procurement. The design says "64 GB DDR4, 4 DIMM slots, 10 Gbps NIC." The BOM says which exact module, from where, at what price.
-</Callout>
+These aren't gaps — they're the boundary between design and procurement. The design says "64 GB DDR4, 4 DIMM slots, 10 Gbps NIC." The BOM says which exact module, from where, at what price.
+:::
 
 ## Summary
 
-<Callout title="Compute design at a glance" variant="summary">
-  - **Phase 0 (SNO)** validates hardware → **Phase 1 (3 nodes)** validates architecture → **Phase 2 (5 nodes)** scales
-  - Combined control plane + worker on Phase 1 nodes; Phase 2 adds workers
-  - 8 cores / 16 threads per node
-  - 64 GB RAM (2 x 32 GB), upgradeable to 128 GB (4 DIMM slots)
-  - Three storage tiers: boot SSD, fast NVMe (Ceph), slow HDD (Ceph)
-  - 10 Gbps interface for storage networking
-  - 1 Gbps RJ45 for management
-  - SFF form factor — power, noise, cost
-  - Three failure domains in both phases
-  - OKD on SCOS with Rook-Ceph
-</Callout>
+:::note[Compute design at a glance]
+- **Phase 0 (SNO)** validates hardware → **Phase 1 (3 nodes)** validates architecture → **Phase 2 (5 nodes)** scales
+- Combined control plane + worker on Phase 1 nodes; Phase 2 adds workers
+- 8 cores / 16 threads per node
+- 64 GB RAM (2 x 32 GB), upgradeable to 128 GB (4 DIMM slots)
+- Three storage tiers: boot SSD, fast NVMe (Ceph), slow HDD (Ceph)
+- 10 Gbps interface for storage networking
+- 1 Gbps RJ45 for management
+- SFF form factor — power, noise, cost
+- Three failure domains in both phases
+- OKD on SCOS with Rook-Ceph
+:::
 
 Every decision traces back to the requirements from the [why post](/blog/homelab-why). Hardware specifics come in the BOM post. Next up: network architecture — because none of this works without the right connectivity between nodes.

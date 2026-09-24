@@ -7,7 +7,6 @@ authors: ['vd']
 order: 2
 ---
 
-import Callout from '@/components/Callout.astro'
 
 [Previous post](/blog/homelab-design/compute) defined the cluster: 3-5 nodes, 64-128 GB RAM, three storage tiers, 10 Gbps storage networking. None of that matters without the right network underneath.
 
@@ -19,9 +18,9 @@ Ceph replicates every write across three nodes. Replication factor 3 means a 1 G
 
 Running that on the same 1 Gbps link that handles SSH, API traffic, and pod-to-pod communication is asking for trouble. Storage saturates the link, everything else suffers, and you spend hours debugging latency that's actually a bandwidth problem.
 
-<Callout title="Non-negotiable" variant="important">
-  Dedicated storage networking on a separate VLAN, separate physical interfaces, at 10 Gbps minimum — that's the baseline for this design. Not a nice-to-have.
-</Callout>
+:::important[Non-negotiable]
+Dedicated storage networking on a separate VLAN, separate physical interfaces, at 10 Gbps minimum — that's the baseline for this design. Not a nice-to-have.
+:::
 
 ## VLAN design
 
@@ -49,20 +48,20 @@ Five VLANs, each with a clear purpose:
 
 The network needs two devices: a router for L3 (inter-VLAN routing, firewall, DHCP, NAT) and a switch for L2 (high-speed switching for storage traffic).
 
-<Callout title="Router requirements" variant="definition">
-  - At least 2x 10 Gbps ports — one for ISP uplink, one for trunk to the switch
-  - At least 10x RJ45 1 Gbps ports — management connections for all nodes, NAS, WAP, DNS server
-  - VLAN-aware with bridge filtering
-  - Firewall capable of inter-VLAN rules
-  - DHCP server for multiple VLANs
-</Callout>
+:::note[Router requirements]
+- At least 2x 10 Gbps ports — one for ISP uplink, one for trunk to the switch
+- At least 10x RJ45 1 Gbps ports — management connections for all nodes, NAS, WAP, DNS server
+- VLAN-aware with bridge filtering
+- Firewall capable of inter-VLAN rules
+- DHCP server for multiple VLANs
+:::
 
-<Callout title="Switch requirements" variant="definition">
-  - At least 8x 10 Gbps ports — one per node (5 nodes), one trunk to router, a couple spare
-  - L2 switching with hardware offload
-  - VLAN tagging support
-  - Jumbo frame support (MTU 9000 for storage)
-</Callout>
+:::note[Switch requirements]
+- At least 8x 10 Gbps ports — one per node (5 nodes), one trunk to router, a couple spare
+- L2 switching with hardware offload
+- VLAN tagging support
+- Jumbo frame support (MTU 9000 for storage)
+:::
 
 The router handles all 1 Gbps connections directly — node management interfaces, NAS, WAP, DNS. The switch handles all 10 Gbps connections — node storage interfaces and the trunk back to the router.
 
@@ -113,9 +112,9 @@ Static addresses for infrastructure, DHCP for clients.
 | .2-.4 | Nodes 4-6 |
 | .5-.6 | Nodes 7-8 |
 
-<Callout title="No DHCP on Backnet" variant="warning">
-  All static. This is a dedicated storage network — nothing should be dynamically joining it.
-</Callout>
+:::warning[No DHCP on Backnet]
+All static. This is a dedicated storage network — nothing should be dynamically joining it.
+:::
 
 **DMZ (192.168.40.0/24):**
 
@@ -131,42 +130,42 @@ IoT (192.168.20.0/24) and Guest (192.168.30.0/24) use DHCP — no static assignm
 
 Not every VLAN should talk to every other VLAN:
 
-<Callout title="Firewall rules" variant="important">
-  - **Backnet → anywhere:** Denied. Storage stays on Backnet. No exceptions.
-  - **Anywhere → Backnet:** Denied. Nothing outside storage reaches Ceph.
-  - **Guest → Internet:** Allowed. Only thing Guest can do.
-  - **Guest → any internal VLAN:** Denied.
-  - **IoT → Frontnet:** Denied by default. Specific rules for devices that need internal services.
-  - **IoT → Internet:** Allowed (cloud-dependent devices).
-  - **DMZ → Internet:** Allowed (ingress traffic).
-  - **DMZ → Frontnet:** Limited to OKD API and specific backend services.
-  - **Frontnet → everything:** Allowed. Management network has full access.
-</Callout>
+:::important[Firewall rules]
+- **Backnet → anywhere:** Denied. Storage stays on Backnet. No exceptions.
+- **Anywhere → Backnet:** Denied. Nothing outside storage reaches Ceph.
+- **Guest → Internet:** Allowed. Only thing Guest can do.
+- **Guest → any internal VLAN:** Denied.
+- **IoT → Frontnet:** Denied by default. Specific rules for devices that need internal services.
+- **IoT → Internet:** Allowed (cloud-dependent devices).
+- **DMZ → Internet:** Allowed (ingress traffic).
+- **DMZ → Frontnet:** Limited to OKD API and specific backend services.
+- **Frontnet → everything:** Allowed. Management network has full access.
+:::
 
 The key principle: Backnet is locked down. No traffic in, no traffic out, except between Ceph OSDs and monitors on VLAN 10. No exceptions.
 
 ## What's deferred
 
-<Callout title="Deferred to Bill of Materials" variant="note">
-  - **Specific router and switch models** — the design defines port count and capability requirements.
-  - **10G connector type (SFP+ with DAC, RJ45 10GbE, etc.)** — BOM decision.
-  - **Port redundancy and bonding** — one 10G port per node is sufficient. Whether to add a second port for redundancy or bonding is a BOM decision.
-  - **Per-node VLAN assignment on 10G ports** — depends on NIC model and node role.
-  - **MTU configuration** — Ceph benefits from jumbo frames (MTU 9000) on Backnet. Exact config depends on NIC and switch firmware.
-  - **Router/switch configuration** — implementation post. Bridge VLAN filtering, DHCP servers, firewall rules.
-</Callout>
+:::note[Deferred to Bill of Materials]
+- **Specific router and switch models** — the design defines port count and capability requirements.
+- **10G connector type (SFP+ with DAC, RJ45 10GbE, etc.)** — BOM decision.
+- **Port redundancy and bonding** — one 10G port per node is sufficient. Whether to add a second port for redundancy or bonding is a BOM decision.
+- **Per-node VLAN assignment on 10G ports** — depends on NIC model and node role.
+- **MTU configuration** — Ceph benefits from jumbo frames (MTU 9000) on Backnet. Exact config depends on NIC and switch firmware.
+- **Router/switch configuration** — implementation post. Bridge VLAN filtering, DHCP servers, firewall rules.
+:::
 
 ## Summary
 
-<Callout title="Network design at a glance" variant="summary">
-  - Five VLANs: Frontnet (management), Backnet (storage), IoT, Guest, DMZ
-  - Router (L3) + switch (L2) topology — router needs 2x 10G and 10+ RJ45, switch needs 8+ 10G ports
-  - Dedicated 10 Gbps storage networking on Backnet, fully isolated
-  - One 10G storage interface per node minimum; redundancy is a BOM decision
-  - 1 Gbps management on all nodes via router
-  - Static IPs for infrastructure, DHCP for clients
-  - Guest is WiFi-only, never touches wired switching
-  - Backnet isolation is a hard requirement, not a preference
-</Callout>
+:::note[Network design at a glance]
+- Five VLANs: Frontnet (management), Backnet (storage), IoT, Guest, DMZ
+- Router (L3) + switch (L2) topology — router needs 2x 10G and 10+ RJ45, switch needs 8+ 10G ports
+- Dedicated 10 Gbps storage networking on Backnet, fully isolated
+- One 10G storage interface per node minimum; redundancy is a BOM decision
+- 1 Gbps management on all nodes via router
+- Static IPs for infrastructure, DHCP for clients
+- Guest is WiFi-only, never touches wired switching
+- Backnet isolation is a hard requirement, not a preference
+:::
 
 Next post covers [storage architecture](/blog/homelab-design/storage) — how Ceph uses this network to distribute data across the tiered storage design from the compute post.

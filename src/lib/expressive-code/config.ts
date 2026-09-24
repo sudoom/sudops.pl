@@ -4,12 +4,18 @@ import {
   createRenderer,
   type SatteriExpressiveCodeOptions,
 } from "satteri-expressive-code"
+import routerosGrammar from "../../grammars/routeros.tmLanguage.json"
 
 export const ecOptions: SatteriExpressiveCodeOptions = {
   themes: ["github-light", "github-dark"],
   useDarkModeMediaQuery: true,
   themeCssSelector: (theme) => `[data-theme="${theme.type}"]`,
   plugins: [pluginCollapsibleSections(), pluginLineNumbers()],
+  shiki: {
+    langs: [
+      { ...routerosGrammar, name: "routeros", scopeName: "source.routeros" },
+    ],
+  },
   defaultProps: {
     wrap: true,
     showLineNumbers: true,

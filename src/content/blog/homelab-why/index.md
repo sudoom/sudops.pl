@@ -6,7 +6,6 @@ tags: ['homelab', 'okd', 'kubernetes', 'infrastructure']
 authors: ['vd']
 ---
 
-import Callout from '@/components/Callout.astro'
 
 Most homelab content starts the same way: "I just picked up this server on eBay, let me show you what I'm running on it." Hardware first, purpose second — if a purpose ever shows up at all.
 
@@ -70,9 +69,9 @@ KubeVirt is a CNCF Incubating project, and it's the foundation of OKD Virtualiza
 
 The Proxmox approach makes sense if VMs are your primary workload and containers are secondary. For me it's the opposite — containers first, occasional VMs. Running an entire hypervisor layer to support 1-2 VMs doesn't justify the overhead.
 
-<Callout title="Key point" variant="important">
-  Same end state but Proxmox stacks 5 layers, OKD stacks 3. In OKD, containers/Rook-Ceph/VMs are peers at the same level. In Proxmox, OKD runs inside a VM, containers inside OKD.
-</Callout>
+:::important[Key point]
+Same end state but Proxmox stacks 5 layers, OKD stacks 3. In OKD, containers/Rook-Ceph/VMs are peers at the same level. In Proxmox, OKD runs inside a VM, containers inside OKD.
+:::
 
 ![Proxmox approach vs OKD approach — same end state, different layer depth](./post01proxmoxvsokd.png)
 
@@ -90,9 +89,9 @@ The trade-off: community support instead of enterprise support. For a learning e
 
 ## The principle behind the series
 
-<Callout title="Core principle" variant="important">
-  You cannot implement what you haven't designed, and you cannot design without a clear goal.
-</Callout>
+:::important[Core principle]
+You cannot implement what you haven't designed, and you cannot design without a clear goal.
+:::
 
 The homelab community has plenty of projects that started with an impulse purchase and grew into infrastructure held together by forum posts and hope. I've been there — the OptiPlex 7050 wasn't part of any plan.
 
@@ -102,16 +101,16 @@ This time: goal first, then design, then architecture, then BOM. Only after vali
 
 The series follows the actual decision sequence:
 
-<Callout title="Series roadmap" variant="summary">
-  1. **Why** — You're reading it.
-  2. **Compute Architecture** — How many nodes, how much RAM, what storage tiers, failure domains, and why.
-  3. **Network Architecture** — VLANs, 10 Gbps storage networking, and why the network is the foundation.
-  4. **Storage Architecture** — Tiered Ceph with fast NVMe and slow HDD pools, replication strategies, Rook-Ceph.
-  5. **Bill of Materials** — Real pricing from the Polish used market. What I chose, what I rejected, and compatibility surprises.
-  6. **Validation** — Single-node testing before full commitment. BIOS config, SCOS boot, NIC compatibility, throughput verification.
+:::note[Series roadmap]
+1. **Why** — You're reading it.
+2. **Compute Architecture** — How many nodes, how much RAM, what storage tiers, failure domains, and why.
+3. **Network Architecture** — VLANs, 10 Gbps storage networking, and why the network is the foundation.
+4. **Storage Architecture** — Tiered Ceph with fast NVMe and slow HDD pools, replication strategies, Rook-Ceph.
+5. **Bill of Materials** — Real pricing from the Polish used market. What I chose, what I rejected, and compatibility surprises.
+6. **Validation** — Single-node testing before full commitment. BIOS config, SCOS boot, NIC compatibility, throughput verification.
 
-  More posts will follow as the project evolves — deployment, day-2 ops, workload onboarding. The series grows with the infrastructure.
-</Callout>
+More posts will follow as the project evolves — deployment, day-2 ops, workload onboarding. The series grows with the infrastructure.
+:::
 
 ## Who this is for
 

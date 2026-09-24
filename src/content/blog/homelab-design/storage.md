@@ -7,7 +7,6 @@ authors: ['vd']
 order: 3
 ---
 
-import Callout from '@/components/Callout.astro'
 
 [Previous post](/blog/homelab-design/network) covered the network — VLANs, isolated 10G storage, firewall policy. This post covers what runs on top of it: Ceph, managed by Rook-Ceph.
 
@@ -51,9 +50,9 @@ Each node has three storage devices:
 | Fast OSD | M.2 NVMe | ~500 GB | Block storage (databases, VMs) | Yes — fast pool |
 | Slow OSD | 3.5" HDD | 16+ TB | Object, filesystem, backups | Yes — slow pool |
 
-<Callout title="Boot drive endurance" variant="warning">
-  The boot drive has a specific requirement: **high write endurance**. etcd fsyncs on every Kubernetes API change — consumer SSDs with low TBW will wear out. Enterprise-grade endurance is required. Specific model is a BOM decision.
-</Callout>
+:::warning[Boot drive endurance]
+The boot drive has a specific requirement: **high write endurance**. etcd fsyncs on every Kubernetes API change — consumer SSDs with low TBW will wear out. Enterprise-grade endurance is required. Specific model is a BOM decision.
+:::
 
 ![Storage tier layout within a single node](./post04nodestoragetiers.png)
 
@@ -85,9 +84,9 @@ This is where the interesting decision is. The slow pool has the most raw capaci
 
 EC 2/1 doubles usable space but has no recovery headroom on exactly 3 nodes. If one node goes down, Ceph serves data fine but can't rebuild the missing chunk. Second failure during that window = data loss. For media and backups that exist elsewhere, probably acceptable. For anything critical, it isn't.
 
-<Callout title="Leaning EC 2/1" variant="note">
-  The slow pool stores media, backups, and archives — data that can be re-obtained. But I haven't committed yet and may change my mind during validation.
-</Callout>
+:::note[Leaning EC 2/1]
+The slow pool stores media, backups, and archives — data that can be re-obtained. But I haven't committed yet and may change my mind during validation.
+:::
 
 **Phase 2 (5 nodes): EC 3/2** — 3 data + 2 parity. 60% usable, survives 2 failures.
 
@@ -97,9 +96,9 @@ EC 2/1 doubles usable space but has no recovery headroom on exactly 3 nodes. If 
 | Phase 1 (3 nodes) | Rep-3 | 48+ TB | ~16 TB |
 | Phase 2 (5 nodes) | EC 3/2 | 80+ TB | ~48 TB |
 
-<Callout title="EC migration" variant="warning">
-  EC profiles can't be changed — can't change after pool creation. EC 2/1 → EC 3/2 requires creating a new pool and migrating data. CephFS supports multi-pool layouts for this; RBD has live migration. Not trivial, but documented.
-</Callout>
+:::warning[EC migration]
+EC profiles can't be changed — can't change after pool creation. EC 2/1 → EC 3/2 requires creating a new pool and migrating data. CephFS supports multi-pool layouts for this; RBD has live migration. Not trivial, but documented.
+:::
 
 ![Ceph pool architecture — fast and slow pools with daemon placement](./post04cephpools.png)
 
@@ -127,26 +126,26 @@ Workloads reference the StorageClass in their PVC. CRUSH rules, device classes, 
 
 ## What's deferred
 
-<Callout title="Deferred decisions" variant="note">
-  - **Drive models and capacities** — BOM post
-  - **Boot drive endurance spec** — BOM, real cost implications
-  - **Final EC 2/1 vs rep-3 decision** — can wait until deployment
-  - **Rook-Ceph CRDs** — implementation post
-  - **EC migration procedure** — Phase 2 implementation
-  - **Ceph tuning** — OSD memory, PG counts, scrub schedules. Day-2
-</Callout>
+:::note[Deferred decisions]
+- **Drive models and capacities** — BOM post
+- **Boot drive endurance spec** — BOM, real cost implications
+- **Final EC 2/1 vs rep-3 decision** — can wait until deployment
+- **Rook-Ceph CRDs** — implementation post
+- **EC migration procedure** — Phase 2 implementation
+- **Ceph tuning** — OSD memory, PG counts, scrub schedules. Day-2
+:::
 
 ## Summary
 
-<Callout title="Storage design at a glance" variant="summary">
-  - Ceph via Rook-Ceph — fits the HCI model, covers block + filesystem + object from one cluster
-  - Alternatives considered (Synology + Longhorn, TrueNAS) but don't fit hyperconverged approach
-  - Hands-on Ceph experience directly benefits professional work
-  - Three tiers per node: boot SSD (local), fast NVMe (Ceph), slow HDD (Ceph)
-  - Fast pool: NVMe, rep-3, ~500 GB usable in Phase 1
-  - Slow pool: HDD, leaning EC 2/1 in Phase 1 (~32 TB), EC 3/2 in Phase 2 (~48 TB)
-  - NFS/SMB gateway available if I want to replace the Synology later
-  - Rook-Ceph as operator — CNCF Graduated, Kubernetes-native lifecycle
-</Callout>
+:::note[Storage design at a glance]
+- Ceph via Rook-Ceph — fits the HCI model, covers block + filesystem + object from one cluster
+- Alternatives considered (Synology + Longhorn, TrueNAS) but don't fit hyperconverged approach
+- Hands-on Ceph experience directly benefits professional work
+- Three tiers per node: boot SSD (local), fast NVMe (Ceph), slow HDD (Ceph)
+- Fast pool: NVMe, rep-3, ~500 GB usable in Phase 1
+- Slow pool: HDD, leaning EC 2/1 in Phase 1 (~32 TB), EC 3/2 in Phase 2 (~48 TB)
+- NFS/SMB gateway available if I want to replace the Synology later
+- Rook-Ceph as operator — CNCF Graduated, Kubernetes-native lifecycle
+:::
 
 This is the last design subpost. Compute, network, and storage together define what the cluster needs. Next comes the BOM — where requirements become hardware with real prices.

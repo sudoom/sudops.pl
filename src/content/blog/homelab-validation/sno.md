@@ -7,7 +7,6 @@ authors: ['vd']
 order: 2
 ---
 
-import Callout from '@/components/Callout.astro'
 
 The hardware is [validated](/blog/homelab-validation/hardware). The network stack is [configured](/blog/homelab-network-impl/phase0). Time to install OKD 4.20 on a single Dell OptiPlex 5090 SFF and see if everything actually works together.
 
@@ -76,9 +75,9 @@ Third attempt worked. Three DNS failures, three different root causes, one lesso
 
 ![DNS verification: all four dig queries resolving correctly through both the router and Pi-hole](./sno-dns-verify.png)
 
-<Callout title="Don't add OKD records in Pi-hole's Local DNS" variant="warning">
-  Pi-hole's Local DNS records override conditional forwarding. If you add `api.sno.home.lab` in the web UI *and* on the router, the Pi-hole entry wins. Later when you change the router record, Pi-hole serves the stale value. Keep the router as the single source of truth for `*.home.lab`.
-</Callout>
+:::warning[Don't add OKD records in Pi-hole's Local DNS]
+Pi-hole's Local DNS records override conditional forwarding. If you add `api.sno.home.lab` in the web UI *and* on the router, the Pi-hole entry wins. Later when you change the router record, Pi-hole serves the stale value. Keep the router as the single source of truth for `*.home.lab`.
+:::
 
 ## Building the agent ISO
 
@@ -86,9 +85,9 @@ The agent-based installer generates a self-contained ISO with the Assisted Servi
 
 Two YAML files go in: `install-config.yaml` and `agent-config.yaml`. The ISO generation requires `openshift-install` (Linux x86_64 only) and `nmstatectl` (Fedora/RHEL only). On a Mac, you can't run either.
 
-<Callout title="Do NOT use the podman-based assisted-service" variant="important">
-  The guide at `github.com/openshift/assisted-service/deploy/podman` is obsolete for OKD 4.20. It tries to pull `quay.io/edge-infrastructure/assisted-installer-agent:latest` — an OCP-aligned image that doesn't exist for OKD. The OKD website's own page for this method warns it "won't produce a working system." Use the agent-based installer instead.
-</Callout>
+:::important[Do NOT use the podman-based assisted-service]
+The guide at `github.com/openshift/assisted-service/deploy/podman` is obsolete for OKD 4.20. It tries to pull `quay.io/edge-infrastructure/assisted-installer-agent:latest` — an OCP-aligned image that doesn't exist for OKD. The OKD website's own page for this method warns it "won't produce a working system." Use the agent-based installer instead.
+:::
 
 ### install-config.yaml
 
@@ -195,9 +194,9 @@ okd-cluster/
 
 The `install/auth/` directory is created during ISO generation, not after install completes. The kubeconfig and kubeadmin password are embedded in the ISO and available immediately — you don't need to wait for the cluster to come up to get them.
 
-<Callout title="Interface names must match exactly" variant="warning">
-  The NMState config in `agent-config.yaml` requires the exact Linux interface name. On the Dell OptiPlex 5090 SFF, the onboard Intel NIC shows as `enp0s31f6`, not `eno1` or `enp1s0`. The `next-hop-interface` in the route config must match this exactly. If it doesn't, `nmstatectl` fails with "next hop interface not found" and no ISO is generated.
-</Callout>
+:::warning[Interface names must match exactly]
+The NMState config in `agent-config.yaml` requires the exact Linux interface name. On the Dell OptiPlex 5090 SFF, the onboard Intel NIC shows as `enp0s31f6`, not `eno1` or `enp1s0`. The `next-hop-interface` in the route config must match this exactly. If it doesn't, `nmstatectl` fails with "next hop interface not found" and no ISO is generated.
+:::
 
 ## Boot and install
 

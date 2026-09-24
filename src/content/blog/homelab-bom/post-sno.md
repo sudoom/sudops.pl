@@ -7,8 +7,6 @@ authors: ['vd']
 order: 2
 ---
 
-import Callout from '@/components/Callout.astro'
-import BomPieChart from '@/components/BomPieChart.tsx'
 
 The [validation BOM](/blog/homelab-bom/pre-validation) covered one node and the network infrastructure — enough to prove the design works. This post covers what happened next: scaling to three nodes for Phase 1, every price change and hardware swap along the way, and the total cost of the cluster so far.
 
@@ -129,7 +127,8 @@ Let's be honest — a homelab isn't a cheap hobby. ~19,600 PLN (~4,560 EUR) for 
 
 But as I wrote in the [first post of this series](/blog/homelab-why): this isn't Plex in a container. It's infrastructure that mirrors what I work with professionally — from physical cabling to storage class definitions. The skills transfer directly. A training course covering the same material costs more and teaches less.
 
-<BomPieChart client:load />
+<bom-chart>
+</bom-chart>
 
 | Category | Total | % of spend |
 |----------|-------|------------|
@@ -141,9 +140,9 @@ But as I wrote in the [first post of this series](/blog/homelab-why): this isn't
 
 72% on compute is expected — the Dell chassis with i7-11700 and 128 GB RAM is the most expensive component. The network infrastructure (router + switch + modules + cables) is 20% but it's a one-time cost that serves Phase 1 and Phase 2 without changes.
 
-<Callout title="Boot SSDs only" variant="note">
-  NVMe included with chassis. HDDs and enterprise NVMe not yet purchased — estimated additional 5,100-8,700 PLN.
-</Callout>
+:::note[Boot SSDs only]
+NVMe included with chassis. HDDs and enterprise NVMe not yet purchased — estimated additional 5,100-8,700 PLN.
+:::
 
 ## Lessons about buying used hardware
 

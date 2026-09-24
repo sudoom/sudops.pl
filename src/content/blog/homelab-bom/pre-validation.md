@@ -7,15 +7,14 @@ authors: ['vd']
 order: 1
 ---
 
-import Callout from '@/components/Callout.astro'
 
 The design posts defined what the cluster needs. This post is where requirements become specific hardware — but not all of it. This is the validation BOM: one node to prove the design works before committing to three or five.
 
 The final BOM — with HDD models, enterprise NVMe, and complete pricing for all nodes — comes after validation. Buy one, test it, then buy the rest.
 
-<Callout title="Market context" variant="note">
-  Everything here was sourced from the Polish used/refurbished market, primarily Allegro.pl.
-</Callout>
+:::note[Market context]
+Everything here was sourced from the Polish used/refurbished market, primarily Allegro.pl.
+:::
 
 ## Chassis: Dell OptiPlex 5090 SFF
 
@@ -41,10 +40,10 @@ The i7-11700 is a traditional 8C/16T design — all cores identical, predictable
 
 The validation node came from the seller with RAM and NVMe already installed:
 
-<Callout title="Included components" variant="tip">
-  - **RAM:** 2 x 32 GB DDR4-3200 = 64 GB
-  - **NVMe:** Seller-provided drive in M.2 slot (model recorded during validation — used for fast OSD testing, enterprise replacement planned for production)
-</Callout>
+:::tip[Included components]
+- **RAM:** 2 x 32 GB DDR4-3200 = 64 GB
+- **NVMe:** Seller-provided drive in M.2 slot (model recorded during validation — used for fast OSD testing, enterprise replacement planned for production)
+:::
 
 | Component | Detail | Price |
 |-----------|--------|-------|
@@ -122,9 +121,9 @@ I looked through enterprise SATA SSDs around 400 GB on Allegro — the usual sus
 | Price | 220.00 PLN (~51 EUR) |
 | Source | Allegro.pl (used) |
 
-<Callout title="Why MLC matters for boot" variant="warning">
-  etcd fsyncs on every Kubernetes API change — sustained write workload. TLC/QLC drives have lower endurance and can slow down as the SLC cache fills.
-</Callout>
+:::warning[Why MLC matters for boot]
+etcd fsyncs on every Kubernetes API change — sustained write workload. TLC/QLC drives have lower endurance and can slow down as the SLC cache fills.
+:::
 
 ## Storage: NVMe and HDD
 
@@ -132,14 +131,14 @@ I looked through enterprise SATA SSDs around 400 GB on Allegro — the usual sus
 
 **HDD:** Not purchased. HDDs are the most expensive per-node component and the decision can wait. Rook-Ceph deployment and initial testing can happen with just the NVMe OSD. Slow pool HDDs will be sourced after the platform is proven.
 
-<Callout title="HDD candidates" variant="note">
-  | | Seagate Exos 24TB | Toshiba MD08 16TB |
-  |---|---|---|
-  | Cost per TB | Best on Polish market | Budget option |
-  | Source | Allegro.pl | Allegro.pl |
+:::note[HDD candidates]
+| | Seagate Exos 24TB | Toshiba MD08 16TB |
+|---|---|---|
+| Cost per TB | Best on Polish market | Budget option |
+| Source | Allegro.pl | Allegro.pl |
 
-  **Seagate Exos Mach.2 (dual-actuator) ruled out** — presents as two block devices, breaks Ceph CRUSH failure domain assumptions.
-</Callout>
+**Seagate Exos Mach.2 (dual-actuator) ruled out** — presents as two block devices, breaks Ceph CRUSH failure domain assumptions.
+:::
 
 ## Cabling and modules
 
@@ -173,10 +172,10 @@ All prices from Allegro.pl, used/refurbished where applicable.
 
 This BOM gets one node and the network infrastructure ready. After Phase 0 (OKD SNO) proves the hardware works:
 
-<Callout title="Next steps" variant="summary">
-  - **NIC compatibility verdict** — does the X710 work in the 5090 SFF?
-  - **Nodes 2-3** — same chassis, same seller, but with 128 GB RAM (4 x 32 GB per node)
-  - **Enterprise NVMe** — replace the seller-included drive with something suitable for Ceph OSD
-  - **HDDs** — sourced after Rook-Ceph is deployed
-  - **Final BOM post** — complete pricing, lessons from validation, and any hardware swaps
-</Callout>
+:::note[Next steps]
+- **NIC compatibility verdict** — does the X710 work in the 5090 SFF?
+- **Nodes 2-3** — same chassis, same seller, but with 128 GB RAM (4 x 32 GB per node)
+- **Enterprise NVMe** — replace the seller-included drive with something suitable for Ceph OSD
+- **HDDs** — sourced after Rook-Ceph is deployed
+- **Final BOM post** — complete pricing, lessons from validation, and any hardware swaps
+:::

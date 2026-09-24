@@ -7,7 +7,6 @@ authors: ['vd']
 order: 2
 ---
 
-import Callout from '@/components/Callout.astro'
 
 The [bootstrap](/blog/homelab-day2/bootstrap) is done — ArgoCD manages the cluster from Git. This is the first component deployed entirely through the pipeline: cert-manager with Let's Encrypt certificates via Cloudflare DNS-01 validation.
 
@@ -193,9 +192,9 @@ spec:
           name: api-cert-tls
 ```
 
-<Callout title="API server patch triggers a rolling restart" variant="warning">
-  The API server patch rolls kube-apiserver on all three nodes sequentially. `oc` commands may briefly fail during the rollout — wait for `oc get co kube-apiserver` to show `PROGRESSING=False`.
-</Callout>
+:::warning[API server patch triggers a rolling restart]
+The API server patch rolls kube-apiserver on all three nodes sequentially. `oc` commands may briefly fail during the rollout — wait for `oc get co kube-apiserver` to show `PROGRESSING=False`.
+:::
 
 ### Verify the API cert
 

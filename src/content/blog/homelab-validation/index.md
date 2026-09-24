@@ -6,15 +6,14 @@ tags: ['homelab', 'okd', 'validation', 'hardware', 'bare-metal']
 authors: ['vd']
 ---
 
-import Callout from '@/components/Callout.astro'
 
 The [BOM post](/blog/homelab-bom) picked the hardware. Before buying five nodes, I validate everything on one machine. Buy one, test it, scale.
 
 Validation breaks into two stages:
 
-<Callout title="Validation stages" variant="summary">
-  1. **Hardware Validation** — CentOS Stream 10 live boot. Prove every component works: storage tiers, NIC detection, PCIe negotiation, SMART health, concurrent I/O, network throughput. No install, no disk writes — just a repeatable checklist.
-  2. **OKD SNO Deployment** — OKD 4.20 as a Single Node cluster on the validated hardware. DNS, installer config, platform-specific workarounds, first workloads.
-</Callout>
+:::note[Validation stages]
+1. **Hardware Validation** — CentOS Stream 10 live boot. Prove every component works: storage tiers, NIC detection, PCIe negotiation, SMART health, concurrent I/O, network throughput. No install, no disk writes — just a repeatable checklist.
+2. **OKD SNO Deployment** — OKD 4.20 as a Single Node cluster on the validated hardware. DNS, installer config, platform-specific workarounds, first workloads.
+:::
 
 Start with hardware validation — confirm the components before any platform touches the disk.

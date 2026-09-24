@@ -7,7 +7,6 @@ authors: ['vd']
 order: 1
 ---
 
-import Callout from '@/components/Callout.astro'
 
 The [3-node cluster](/blog/homelab-day1) is running. Before touching storage, networking, or any operator, the management layer goes in. Everything from here on should flow through Git — commit, push, ArgoCD syncs, done.
 
@@ -90,9 +89,9 @@ subjects:
     namespace: openshift-gitops
 ```
 
-<Callout title="cluster-admin is broad, and that's fine here" variant="note">
-  Yeah, `cluster-admin` is broad. It's a homelab — I'm the only user, and the Git repo is the real access control. If you can push to `master`, you own the cluster. For a team setup, scope this down.
-</Callout>
+:::note[cluster-admin is broad, and that's fine here]
+Yeah, `cluster-admin` is broad. It's a homelab — I'm the only user, and the Git repo is the real access control. If you can push to `master`, you own the cluster. For a team setup, scope this down.
+:::
 
 ## Connect the Git repo
 

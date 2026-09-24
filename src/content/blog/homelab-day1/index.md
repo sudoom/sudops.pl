@@ -6,7 +6,6 @@ tags: ['homelab', 'okd', 'kubernetes', 'bare-metal', 'installation']
 authors: ['vd']
 ---
 
-import Callout from '@/components/Callout.astro'
 
 The hardware is [validated](/blog/homelab-validation/hardware). The single-node proof of concept [worked](/blog/homelab-validation/sno). Three identical Dell OptiPlex 5090 SFF machines are racked, cabled, and ready. Time to deploy the production cluster.
 
@@ -29,9 +28,9 @@ The SNO validation used `platform: none` on `home.lab` — a disposable test clu
 
 Using `sudops.pl` instead of `home.lab` enables cert-manager with DNS-01 validation via Cloudflare API later. Browser-trusted wildcard certs for `*.apps.okd.sudops.pl` without managing a private CA. The split-horizon DNS is simple: Pi-hole forwards only `*.okd.sudops.pl` to the MikroTik router via a targeted dnsmasq directive, everything else goes to upstream DNS normally.
 
-<Callout title="VIPs must live on VLAN 5" variant="warning">
-  The original design placed API and Ingress VIPs on VLAN 40 (DMZ) at 192.168.40.253 and .254. This doesn't work — keepalived binds VIPs to the interface whose subnet matches the VIP address. Since nodes' primary interfaces are on 192.168.1.0/24 (VLAN 5), VIPs must also be on this subnet. The DMZ exposure plan is now DNAT rules on the MikroTik router.
-</Callout>
+:::warning[VIPs must live on VLAN 5]
+The original design placed API and Ingress VIPs on VLAN 40 (DMZ) at 192.168.40.253 and .254. This doesn't work — keepalived binds VIPs to the interface whose subnet matches the VIP address. Since nodes' primary interfaces are on 192.168.1.0/24 (VLAN 5), VIPs must also be on this subnet. The DMZ exposure plan is now DNAT rules on the MikroTik router.
+:::
 
 ## The install-config.yaml
 
