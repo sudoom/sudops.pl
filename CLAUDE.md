@@ -16,8 +16,10 @@ The site is hosted on **Cloudflare Pages**, connected directly to this repo. Eve
 
 To build, commit, and deploy in one shot:
 ```
-npm run build && git add . && git commit -m "your message" && git push origin main
+npm run build && git add <changed files> && git commit -m "your message" && git push origin main
 ```
+
+Stage the files you changed by path — never `git add .` or `git add -A`. The working tree can hold untracked local files (e.g. a Hugo `themes/` checkout) that must not be committed.
 
 You can verify the result at https://sudops.pl after the Cloudflare build completes.
 
@@ -28,7 +30,7 @@ You can verify the result at https://sudops.pl after the Cloudflare build comple
 - `npm run dev` — Start dev server (port 1234)
 - `npm run build` — Type-check (`astro check`) then build
 - `npm run preview` — Preview production build
-- `npm run format` — Format with Biome (`npm run format:check` only checks)
+- `npx biome format --write <files>` — Format the files you changed with Biome. Don't run `npm run format` on the whole repo: it rewrites upstream files (merge noise) and the hand-minified `HeroSea.astro`.
 
 ## Upstream template
 
@@ -40,6 +42,14 @@ git fetch upstream
 git switch -c upstream-sync origin/main
 git merge upstream/main
 ```
+
+Before committing the merge:
+
+- **`bun.lock`:** upstream ships bun's lockfile; this repo uses npm. Resolve its conflict with `git rm bun.lock`.
+- **Lockfile:** run `npm install` and commit the updated `package-lock.json`. Cloudflare installs with `npm ci`, which fails when `package.json` and the lockfile disagree.
+- **New demo content:** run `git diff --cached --name-status HEAD -- src/content`. Anything upstream added there is demo content — move it to `test-content/` (keeps the reference current) or delete it; otherwise it goes live on sudops.pl.
+- **Conflicts in files we customized:** keep our version and re-apply the upstream change by hand if it matters. These upstream files carry sudops edits: `src/consts.ts`, `astro.config.ts`, `src/lib/expressive-code/config.ts`, `src/pages/index.astro`, `src/components/Footer.astro`, `src/assets/logo.svg`, the `public/` favicons and `site.webmanifest`, `.gitignore`.
+- Run `npm run build` before opening the PR.
 
 Merge PRs that bring in upstream history with **"Create a merge commit"**, never squash. Squashing drops the upstream parent, and the next sync then conflicts everywhere. Keep upstream files (components, layouts, `src/lib`, `src/styles`) as close to upstream as possible; site-specific code lives in the files listed under "Site-specific files".
 
@@ -70,6 +80,7 @@ Content schemas are defined in `src/content.config.ts`.
 - `src/pages/privacy.astro`, `src/pages/terms.astro`
 - `src/assets/logo.svg` (Great Wave mark), `src/assets/icons/linkedin.svg`, `src/assets/icons/tech/*.svg`
 - `src/grammars/routeros.tmLanguage.json`
+- Upstream files with sudops edits are listed under "Upstream template" — keep ours when they conflict.
 
 ### Styling
 - Native CSS with custom properties. Components use scoped `<style>` blocks and custom element names (`<prose-content>`, `<entry-info>`, …) instead of utility classes.
@@ -121,7 +132,7 @@ Raw/unformatted post drafts are stored in `posts/*.md` (gitignored). These need 
 - `test-content/authors/`, `test-content/projects/` — frontmatter formats
 
 ### Formatting
-Biome (`biome.json`, from upstream): double quotes, no semicolons, 2-space indent, 80 columns. It formats `.ts`, `.astro` and `.json`; Markdown is not formatted.
+Biome (`biome.json`, from upstream): double quotes, no semicolons, 2-space indent, 80 columns. It formats `.ts`, `.astro` and `.json`; Markdown is not formatted. Run it only on the files you changed (`npx biome format --write <files>`), and never on `src/components/HeroSea.astro`.
 
 ## Source material — homelab repo + vault
 
