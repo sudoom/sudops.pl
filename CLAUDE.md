@@ -4,13 +4,15 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 
 **Keep this file up to date as the project evolves.** When you add features, change structure, or learn something new about the codebase, update CLAUDE.md in the same commit — don't wait to be asked.
 
+**If something isn't clear, ask — don't assume.** When a request, a draft, or the code leaves a decision open, ask the repo owner instead of guessing.
+
 ## Project Overview
 
-Personal blog and portfolio site (sudops.pl) built with **Astro 6** using the astro-erudite template. Uses MDX for content, Tailwind CSS 4 for styling, shadcn/ui for UI components, and React for interactive components.
+Personal blog and portfolio site (sudops.pl) built on the **astro-erudite v2** template (Astro 7). Content is plain Markdown (`.md`) rendered by the Sätteri processor; styling is native CSS. There is no Tailwind, no UI framework, no React, and no MDX.
 
 ## Deployment
 
-The site is hosted on **Cloudflare Pages**, connected directly to this repo. Every commit pushed to `main` triggers an automatic build and deploy. Results are live at **https://sudops.pl**.
+The site is hosted on **Cloudflare Pages**, connected directly to this repo. Every commit pushed to `main` triggers an automatic build and deploy. Results are live at **https://sudops.pl**. Every other pushed branch gets a preview at `https://<branch-name>.sudops-pl.pages.dev/`.
 
 To build, commit, and deploy in one shot:
 ```
@@ -26,85 +28,100 @@ You can verify the result at https://sudops.pl after the Cloudflare build comple
 - `npm run dev` — Start dev server (port 1234)
 - `npm run build` — Type-check (`astro check`) then build
 - `npm run preview` — Preview production build
-- `npm run prettier` — Format all source files
+- `npm run format` — Format with Biome (`npm run format:check` only checks)
+
+## Upstream template
+
+This repo is a real git fork of [jktrn/astro-erudite](https://github.com/jktrn/astro-erudite) (shared history). To pull upstream changes:
+
+```
+git remote add upstream https://github.com/jktrn/astro-erudite.git   # once
+git fetch upstream
+git switch -c upstream-sync origin/main
+git merge upstream/main
+```
+
+Merge PRs that bring in upstream history with **"Create a merge commit"**, never squash. Squashing drops the upstream parent, and the next sync then conflicts everywhere. Keep upstream files (components, layouts, `src/lib`, `src/styles`) as close to upstream as possible; site-specific code lives in the files listed under "Site-specific files".
 
 ## Architecture
 
 **Path alias:** `@/*` maps to `./src/*`
 
 ### Content System (`src/content/`)
-- **Blog posts** (`blog/`): MDX files with frontmatter (title, description, date, tags, image, authors, draft, order). Subposts use directory nesting — a post ID containing "/" is a subpost (e.g., `parent-slug/child-slug`).
-- **Authors** (`authors/`): Markdown profiles referenced by blog posts.
-- **Projects** (`projects/`): Markdown with name, description, tags, image, link, dates.
+- **Blog posts** (`blog/`): `.md` files. The loader glob is `**/[^_]*.md`: `.mdx` is not collected, and a leading `_` hides a file. Frontmatter: title, description, date, tags, authors (required, references `authors/`), image, draft, order.
+- **Series** (subposts): a folder with `index.md` (the parent) and sibling `.md` subposts ordered by `order`. Every URL in a series renders the whole series as one scrolling page, and the address bar follows the article being read. Subpost heading IDs are prefixed with the subpost file name (`## References` in `phase0.md` → `#phase0-references`), so in-post anchor links must use the prefixed ID.
+- **Authors** (`authors/`): `vd.md`. `socials` is a record; the keys `website` and `github` get icons, other keys get a generic link icon.
+- **Projects** (`projects/`): name, description, link, tags, image, startDate, endDate.
 
 Content schemas are defined in `src/content.config.ts`.
 
 ### Key Files
-- `src/consts.ts` — Site metadata, nav links, social links
-- `src/lib/data-utils.ts` — All content querying functions (posts, tags, subposts, TOC, reading time)
-- `src/styles/global.css` — Theme color variables (OKLCH format), light/dark mode via `data-theme` attribute
-- `src/styles/typography.css` — Prose/blog content typography (Geist font family)
-- `astro.config.ts` — Astro config with MDX, React, sitemap, expressive-code, rehype/remark plugins
+- `src/consts.ts` — `SITE`, `NAVIGATION` (sidebar links), `SOCIALS` (footer icons)
+- `src/lib/content.ts` — content queries (`getPosts`, `getSubposts`, `getTags`)
+- `src/lib/callout.ts`, `src/lib/expressive-code/`, `src/lib/heading-*.ts`, `src/lib/math.ts`, `src/lib/external-links.ts` — Sätteri plugins
+- `src/lib/expressive-code/config.ts` — code block settings, including the custom RouterOS grammar (`src/grammars/routeros.tmLanguage.json`)
+- `src/styles/` — native CSS design system (tokens in `fonts.css`, `color.css`, `shape.css`, `layout.css`)
+- `astro.config.ts` — site URL, dev port, Sätteri processor and plugin list
 
-### Component Patterns
-- Astro components in `src/components/` for static rendering (Header, Footer, BlogCard, ProjectCard, Callout, TOC, etc.)
-- React components in `src/components/react/` for client-side interactivity (ErrorBoundary)
-- shadcn/ui primitives in `src/components/ui/` (avatar, badge, button, dialog, pagination, etc.)
-- `src/components/Callout.astro` has 22 callout variants (note, tip, warning, danger, theorem, etc.)
-- `src/components/BomPieChart.tsx` — interactive recharts doughnut chart (used in BOM post)
+### Site-specific files (not from upstream)
+- `src/pages/index.astro` — homepage: intro, `HeroSea`, tech stack chips, latest 2 posts
+- `src/components/HeroSea.astro` — animated SVG hero (hand-minified; don't reformat)
+- `src/components/Footer.astro` — upstream footer plus Privacy/Terms links
+- `src/pages/privacy.astro`, `src/pages/terms.astro`
+- `src/assets/logo.svg` (Great Wave mark), `src/assets/icons/linkedin.svg`, `src/assets/icons/tech/*.svg`
+- `src/grammars/routeros.tmLanguage.json`
 
 ### Styling
-- Tailwind CSS 4 with `@tailwindcss/vite` plugin
-- Theme colors defined as CSS custom properties in OKLCH color space
-- Light/dark mode toggled via `data-theme` attribute on `<html>`
+- Native CSS with custom properties. Components use scoped `<style>` blocks and custom element names (`<prose-content>`, `<entry-info>`, …) instead of utility classes.
+- Use the tokens: spacing `--space-*`, type scale `--step-*`, radii `--radius-*`, colours `--foreground`, `--muted-foreground`, `--background`, `--muted`, `--border`.
+- Light/dark follows the system setting; the sidebar toggle overrides it via `data-theme` on `<html>`.
 
 ### Blog Structure
 
-The blog is a homelab series. Posts use a parent/subpost pattern where topics with multiple parts get a parent `index.mdx` (overview + callout listing subposts) and individual subpost `.mdx` files with `order` frontmatter:
+The blog is a homelab series. Posts use a parent/subpost pattern where topics with multiple parts get a parent `index.md` (overview + callout listing subposts) and individual subpost `.md` files with `order` frontmatter:
 
 - `homelab-why/` — Standalone post (why this project)
-- `homelab-design/` — Parent + subposts: `compute.mdx`, `network.mdx`, `storage.mdx`
-- `homelab-bom/` — Parent + subposts: `pre-validation.mdx`, `post-sno.mdx`
-- `homelab-network-impl/` — Parent + subposts: `phase0.mdx`, post-SNO *(future)*
-- `homelab-validation/` — Parent + subposts: `hardware.mdx`, `sno.mdx`
+- `homelab-design/` — Parent + subposts: `compute.md`, `network.md`, `storage.md`
+- `homelab-bom/` — Parent + subposts: `pre-validation.md`, `post-sno.md`
+- `homelab-network-impl/` — Parent + subposts: `phase0.md`, post-SNO *(future)*
+- `homelab-validation/` — Parent + subposts: `hardware.md`, `sno.md`
 - `homelab-day1/` — Standalone post (OKD 3-node cluster installation)
-- `homelab-day2/` — Parent + subposts: `bootstrap.mdx`, `cert-manager.mdx`, `storage-network.mdx`, rook-ceph *(future)*
+- `homelab-day2/` — Parent + subposts: `bootstrap.md`, `cert-manager.md`, `storage-network.md`, rook-ceph *(future)*
 
-When converting raw drafts to MDX:
+When converting raw drafts to Markdown:
 - Strip social media drafts (LinkedIn/Slack/Reddit) from the end
-- Convert blockquotes/notes to `<Callout>` components with appropriate variants
-- Use ` ```routeros ` for MikroTik/RouterOS config blocks (custom TextMate grammar in `src/grammars/`), `bash` for pure shell commands, plain ` ``` ` for terminal output with prompts
+- Callouts are directives: `:::note[Title]` … `:::` (title optional; `:::note{closed}` starts collapsed). Variants: `note`, `tip`, `warning`, `caution`, `important`. They render as "Note (Title)".
+- Interactive pieces are custom elements with an inline `<script>` in the `.md` (see `<bom-chart>` in `homelab-bom/post-sno.md`). Always guard with `if (!customElements.get("name"))`, because scripts re-run on navigation.
+- Use ` ```routeros ` for MikroTik/RouterOS config blocks, `bash` for pure shell commands, plain ` ``` ` for terminal output with prompts
 - Images go in the same directory as the post, referenced with `./filename.png`
 - Use first person ("I"), never "we" — this is a personal blog
 - **Post `date` is the publish date, not the narrative date.** When a draft goes live, set its `date` (and each subpost's) to the day it's published — current date, not when the work happened. Bump stale dates right before merging (see the `chore: update … post date` commits). Subpost sequence is held by the `order` field, so same-day dates across a batch are fine.
-- **MDX code-fence gotcha:** put raw Helm/Go `{{ ... }}` templates directly in the code fence. Do **not** wrap them in `{`...`}` JSX-expression containers — fenced code is literal in MDX, so the wrapper renders as stray backtick-brace characters.
 - Keep prose tight and conversational. Avoid textbook-style explanations — assume the reader has context. If something can be said in one sentence, don't use three.
 - Prefer simple words over fancy ones (e.g. "leftovers" not "remnants", "locked down" not "walled garden", "can't be changed" not "immutable", "removes" not "eliminates")
-- **MDX gotcha:** `<` followed by a digit (e.g. `<100 ms`, `<1 ms`) gets parsed as a JSX tag and breaks the build. Use "under 100 ms" or "less than 1 ms" instead.
 - Summary diagrams (e.g. `hwvalidation.png`, `snovalidation.png`) go after the go/no-go table at the end of validation posts, before "What's next"
 
 ### Pages
-- `/blog` — Blog listing (10 posts per page, grouped by year, minimal card style)
-- `/privacy` — Privacy policy (GDPR, Cloudflare)
-- `/terms` — Terms & conditions
-- `/tags` — Tag index
-- `/projects` — Project portfolio
+- `/` — homepage
+- `/blog` — all posts on one page (no pagination)
+- `/blog/<post>` and `/blog/<post>/<subpost>` — posts and series
+- `/projects` — project portfolio
+- `/tags`, `/tags/<tag>` — tag index
+- `/authors`, `/authors/vd` — built but not in the nav
+- `/privacy`, `/terms` — linked from the footer
 
 ### Raw Blog Post Drafts
 
-Raw/unformatted post drafts are stored in `posts/*.md` (gitignored). These need to be formatted (proper frontmatter, MDX syntax, callouts, etc.) and moved to `src/content/blog/` before they go live.
+Raw/unformatted post drafts are stored in `posts/*.md` (gitignored). These need to be formatted (proper frontmatter, directives, etc.) and moved to `src/content/blog/` before they go live.
 
 ### Reference Content (`test-content/`)
 
-The `test-content/` directory contains the original astro-erudite template content. **Always use it as a reference** when creating new content to ensure correct structure:
-- `test-content/authors/` — Author profile format (frontmatter fields: name, avatar, bio, socials)
-- `test-content/blog/` — Blog post structure (directory per post, `index.mdx` + optional `banner.png`, subpost nesting)
-- `test-content/projects/` — Project entry format (frontmatter fields: name, description, tags, image, link)
+`test-content/` holds upstream astro-erudite v2's demo content. **Always use it as a reference** when creating new content:
+- `test-content/blog/introducing-v2/index.md` — every Markdown feature v2 supports (callouts, code blocks, math, custom elements)
+- `test-content/blog/v1-posts/` — a series (parent `index.md` + subposts)
+- `test-content/authors/`, `test-content/projects/` — frontmatter formats
 
-When formatting raw drafts from `posts/`, consult these examples for proper frontmatter schema, MDX conventions, image handling, and subpost directory layout.
-
-### Prettier Config
-Semi-colon free, single quotes. Plugins: astro, tailwindcss, astro-organize-imports.
+### Formatting
+Biome (`biome.json`, from upstream): double quotes, no semicolons, 2-space indent, 80 columns. It formats `.ts`, `.astro` and `.json`; Markdown is not formatted.
 
 ## Source material — homelab repo + vault
 
@@ -124,12 +141,12 @@ This blog documents a real homelab. When writing or updating a post, the canonic
 ### Pipeline
 
 ```
-homelab/blog/*-draft.md   →   sudops.pl/posts/*.md   →   sudops.pl/src/content/blog/*.mdx
-(raw session chronology)      (gitignored raw draft)     (published, formatted MDX)
+homelab/blog/*-draft.md   →   sudops.pl/posts/*.md   →   sudops.pl/src/content/blog/*.md
+(raw session chronology)      (gitignored raw draft)     (published, formatted Markdown)
 vault/_memory/chats/homelab/  ──(the "why")──┘
 ```
 
 ### Guardrails
 
 - **Don't publish secrets.** Drafts may reference tokens/keys/internal IPs the homelab `CLAUDE.md` "Blog notes" rule flags as not-for-commit. Reference them by name; never paste real credentials or kubeconfigs into a post.
-- Keep the existing post conventions (first person, tight prose, `routeros` code fences, `<Callout>` variants, the `<`-digit MDX gotcha).
+- Keep the existing post conventions (first person, tight prose, `routeros` code fences, `:::` callouts).
