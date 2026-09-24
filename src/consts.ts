@@ -45,13 +45,6 @@ export const SOCIAL_LINKS: SocialLink[] = [
   },
 ]
 
-// Newsletter consent text (centralized for GDPR compliance)
-export const NEWSLETTER_CONSENT_TEXT = {
-  text: 'I agree to receive newsletter emails.',
-  privacyLink: '/privacy',
-  privacyText: 'Privacy Policy',
-}
-
 export const ICON_MAP: IconMap = {
   Website: 'lucide:globe',
   GitHub: 'lucide:github',
