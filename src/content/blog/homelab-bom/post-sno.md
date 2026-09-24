@@ -130,6 +130,86 @@ But as I wrote in the [first post of this series](/blog/homelab-why): this isn't
 <bom-chart>
 </bom-chart>
 
+<script>
+  if (!customElements.get("bom-chart")) {
+    customElements.define(
+      "bom-chart",
+      class extends HTMLElement {
+        connectedCallback() {
+          if (this.shadowRoot) return
+          const data = [
+            { name: "Compute (chassis + RAM)", value: 14180, color: "#3266ad" },
+            { name: "Network infrastructure", value: 3964.9, color: "#c47a2a" },
+            { name: "NICs", value: 839.97, color: "#7c5cbf" },
+            { name: "Storage (boot SSDs)", value: 618, color: "#2a8a5a" },
+          ]
+          const total = data.reduce((sum, d) => sum + d.value, 0)
+          const pct = (v) => Math.round((v / total) * 100)
+          const pln = (v) =>
+            v.toLocaleString("pl-PL", { maximumFractionDigits: 0 }) + " PLN"
+          const [cx, cy, inner, outer] = [150, 150, 70, 120]
+          const at = (r, a) => [cx + r * Math.sin(a), cy - r * Math.cos(a)]
+          let start = 0
+          const slices = data.map((d) => {
+            const end = start + (d.value / total) * 2 * Math.PI
+            const large = end - start > Math.PI ? 1 : 0
+            const [x0, y0] = at(outer, start)
+            const [x1, y1] = at(outer, end)
+            const [x2, y2] = at(inner, end)
+            const [x3, y3] = at(inner, start)
+            const [lx, ly] = at(outer + 16, (start + end) / 2)
+            start = end
+            return (
+              `<path d="M${x0} ${y0} A${outer} ${outer} 0 ${large} 1 ${x1} ${y1} ` +
+              `L${x2} ${y2} A${inner} ${inner} 0 ${large} 0 ${x3} ${y3} Z" ` +
+              `fill="${d.color}" data-tip="${d.name}: ${pln(d.value)} (${pct(d.value)}%)"></path>` +
+              `<text x="${lx}" y="${ly}">${pct(d.value)}%</text>`
+            )
+          })
+          const legend = data.map(
+            (d) =>
+              `<li><span style="background:${d.color}"></span>` +
+              `${d.name} ${pct(d.value)}% — ${pln(d.value)}</li>`,
+          )
+          const root = this.attachShadow({ mode: "open" })
+          root.innerHTML = `
+            <style>
+              :host { display: block; max-width: 500px; margin: 0 auto 1em; }
+              figure { position: relative; margin: 0; }
+              svg { display: block; width: 100%; max-width: 320px; height: auto; margin: 0 auto; }
+              path { cursor: pointer; transition: opacity 0.15s; }
+              path:hover { opacity: 0.8; }
+              text { fill: var(--foreground, currentColor); font-size: 13px; text-anchor: middle; dominant-baseline: middle; }
+              [role="tooltip"] { position: absolute; pointer-events: none; padding: 0.25em 0.5em; background: var(--background, Canvas); color: var(--foreground, CanvasText); border: 1px solid var(--border, GrayText); border-radius: 8px; font-size: 13px; white-space: nowrap; }
+              ul { list-style: none; margin: 0.5em 0 0; padding: 0; font-size: 13px; }
+              li { display: flex; align-items: center; gap: 0.5em; }
+              li span { width: 0.75em; height: 0.75em; border-radius: 2px; flex-shrink: 0; }
+            </style>
+            <figure>
+              <svg viewBox="0 0 300 300" role="img" aria-label="Homelab spend by category">${slices.join("")}</svg>
+              <div role="tooltip" hidden></div>
+              <ul>${legend.join("")}</ul>
+            </figure>`
+          const figure = root.querySelector("figure")
+          const tip = root.querySelector('[role="tooltip"]')
+          for (const path of root.querySelectorAll("path")) {
+            path.addEventListener("pointermove", (event) => {
+              const box = figure.getBoundingClientRect()
+              tip.textContent = path.dataset.tip
+              tip.style.left = `${event.clientX - box.left + 12}px`
+              tip.style.top = `${event.clientY - box.top + 12}px`
+              tip.hidden = false
+            })
+            path.addEventListener("pointerleave", () => {
+              tip.hidden = true
+            })
+          }
+        }
+      },
+    )
+  }
+</script>
+
 | Category | Total | % of spend |
 |----------|-------|------------|
 | Compute (chassis + RAM) | 14,180.00 PLN | 72% |
