@@ -1272,6 +1272,8 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 
 **Keep this file up to date as the project evolves.** When you add features, change structure, or learn something new about the codebase, update CLAUDE.md in the same commit — don't wait to be asked.
 
+**If something isn't clear, ask — don't assume.** When a request, a draft, or the code leaves a decision open, ask the repo owner instead of guessing.
+
 ## Project Overview
 
 Personal blog and portfolio site (sudops.pl) built on the **astro-erudite v2** template (Astro 7). Content is plain Markdown (`.md`) rendered by the Sätteri processor; styling is native CSS. There is no Tailwind, no UI framework, no React, and no MDX.
