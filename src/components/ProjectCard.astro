@@ -1,70 +1,148 @@
 ---
-import Link from '@/components/Link.astro'
-import { Badge } from '@/components/ui/badge'
-import { formatDate } from '@/lib/utils'
-import { Icon } from 'astro-icon/components'
-import { Image } from 'astro:assets'
-import type { CollectionEntry } from 'astro:content'
+import ExternalIcon from "@/assets/icons/external.svg"
+import { formatDate } from "@/lib/utils"
+import { Image } from "astro:assets"
+import type { CollectionEntry } from "astro:content"
 
-interface Props {
-  project: CollectionEntry<'projects'>
-}
+type Props = { project: CollectionEntry<"projects"> }
 
 const { project } = Astro.props
+const { name, description, link, tags, image, startDate, endDate } =
+  project.data
 ---
 
-<div
-  class="hover:bg-muted/50 rounded-xl border p-4 transition-colors duration-300 ease-in-out"
->
-  <Link
-    href={project.data.link}
-    class="flex flex-col gap-4 sm:flex-row"
-    external
-  >
-    {
-      project.data.image && (
-        <div class="w-full sm:max-w-3xs sm:shrink-0">
-          <Image
-            src={project.data.image}
-            alt={project.data.name}
-            width={1200}
-            height={630}
-            class="object-cover"
-          />
-        </div>
-      )
+<li>
+  {image && (
+      <a
+        href={link}
+        target="_blank"
+        rel="noopener noreferrer"
+        tabindex="-1"
+        aria-hidden="true"
+      >
+        <Image src={image} alt="" width={640} height={336} />
+      </a>
+    )}
+  <entry-info>
+    <a href={link} target="_blank" rel="noopener noreferrer">{name}</a>
+    <entry-meta>
+      {startDate && (
+          <project-dates>
+            <time datetime={startDate.toISOString()}>
+              {formatDate(startDate)}
+            </time>
+            {" → "}
+            {endDate ? (
+              <time datetime={endDate.toISOString()}>
+                {formatDate(endDate)}
+              </time>
+            ) : (
+              "Present"
+            )}
+          </project-dates>
+        )}
+      <project-link>
+        <ExternalIcon aria-hidden="true" />
+        {new URL(link).hostname}
+      </project-link>
+    </entry-meta>
+    <p>{description}</p>
+    {tags && tags.length > 0 && (
+        <project-tags>
+          {tags.map((tag) => (
+            <span>{tag}</span>
+          ))}
+        </project-tags>
+      )}
+  </entry-info>
+</li>
+
+<style>
+  li {
+    display: flex;
+    align-items: flex-start;
+    gap: var(--space-s);
+
+    > a {
+      flex-shrink: 0;
+      inline-size: 14rem;
+
+      :global(img) {
+        inline-size: 100%;
+        block-size: auto;
+      }
     }
-    <div class="grow">
-      <h3 class="mb-1 text-lg font-medium">
-        {project.data.name}
-      </h3>
-      <p class="text-muted-foreground mb-2 text-sm">
-        {project.data.description}
-      </p>
-      {
-        project.data.startDate && (
-          <p class="text-muted-foreground/70 mb-2 flex items-center gap-x-1.5 text-xs">
-            <span class="flex items-center gap-x-1.5">
-              <Icon name="lucide:calendar" class="size-3" />
-              <span>
-                {formatDate(project.data.startDate)}
-                {project.data.endDate
-                  ? ` → ${formatDate(project.data.endDate)}`
-                  : ' → Present'}
-              </span>
-            </span>
-          </p>
-        )
+
+    entry-info {
+      display: flex;
+      flex-direction: column;
+
+      > a {
+        font-size: var(--step-1);
+        line-height: calc(var(--leading-offset) + 1em);
+        font-weight: var(--font-weight-medium);
       }
-      {
-        project.data.tags && (
-          <div class="flex flex-wrap gap-2">
-            {project.data.tags.map((tag: string) => (
-              <Badge variant="muted">{tag}</Badge>
-            ))}
-          </div>
-        )
+
+      entry-meta {
+        display: flex;
+        flex-wrap: wrap;
+        align-items: center;
+        gap: var(--space-3xs);
+        margin-block-end: var(--space-3xs);
+        font-size: var(--step--1);
+        color: var(--muted-foreground);
+
+        project-dates {
+          display: flex;
+          align-items: center;
+          gap: var(--space-3xs);
+        }
+
+        project-link {
+          display: flex;
+          align-items: center;
+          gap: var(--space-3xs);
+          color: color-mix(in oklab, var(--muted-foreground) 50%, transparent);
+
+          svg {
+            inline-size: 1em;
+            block-size: 1em;
+          }
+        }
+
+        project-dates ~ project-link::before {
+          content: "·";
+          color: var(--muted-foreground);
+        }
       }
-    </div>
-  </Link>
-</div>
+
+      p {
+        color: var(--muted-foreground);
+      }
+
+      project-tags {
+        display: flex;
+        flex-wrap: wrap;
+        gap: var(--space-3xs);
+        margin-block-start: var(--space-2xs);
+        font-size: var(--step--1);
+
+        span {
+          padding-inline: var(--space-2xs);
+          color: var(--muted-foreground);
+          background-color: color-mix(in oklab, var(--muted) 50%, transparent);
+          border-radius: var(--radius-full);
+        }
+      }
+    }
+
+    @media (width < 40rem) {
+      flex-direction: column;
+
+      > a {
+        inline-size: 100%;
+        max-inline-size: 32rem;
+      }
+    }
+  }
+</style>

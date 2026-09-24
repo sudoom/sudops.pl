@@ -1,54 +1,27 @@
-import type { IconMap, SocialLink, Site } from '@/types'
+import type { SvgComponent } from "astro/types"
+import Email from "@/assets/icons/email.svg"
+import GitHub from "@/assets/icons/github.svg"
+import RSS from "@/assets/icons/rss.svg"
+import Twitter from "@/assets/icons/twitter.svg"
 
-export const SITE: Site = {
-  title: 'sudops.pl',
-  description:
-    'personal technical portfolio and blog of Vadzim Dziadziulia (Sudoom).',
-  href: 'https://sudops.pl',
-  author: 'Vadzim Dziadziulia',
-  locale: 'en-US',
-  featuredPostCount: 2,
-  postsPerPage: 10,
-}
+export const SITE = {
+  title: "astro-erudite",
+  description: "An opinionated, unstyled blogging template built with Astro.",
+  locale: "en-US",
+  dir: "ltr",
+  defaultPageImage: "/static/opengraph-image.png",
+  defaultPostImage: "/static/1200x630.png",
+} as const
 
-export const NAV_LINKS: SocialLink[] = [
-  {
-    href: '/',
-    label: 'home',
-  },
-  {
-    href: '/blog',
-    label: 'blog',
-  },
-  {
-    href: '/projects',
-    label: 'projects',
-  },
-  {
-    href: '/tags',
-    label: 'tags',
-  },
+export const NAVIGATION = [
+  { href: "/blog", label: "Blog" },
+  { href: "/projects", label: "Projects" },
+  { href: "/authors", label: "Authors" },
 ]
 
-export const SOCIAL_LINKS: SocialLink[] = [
-  {
-    href: 'https://github.com/sudoom',
-    label: 'GitHub',
-  },
-  {
-    href: 'https://www.linkedin.com/in/vadzim-dziadziulia-648933138/',
-    label: 'LinkedIn',
-  },
-  {
-    href: 'mailto:root@sudoom.pl',
-    label: 'Email',
-  },
+export const SOCIALS: { href: string; label: string; icon: SvgComponent }[] = [
+  { href: "https://github.com/jktrn", label: "GitHub", icon: GitHub },
+  { href: "https://twitter.com/enscrbe", label: "Twitter", icon: Twitter },
+  { href: "mailto:jason@enscribe.dev", label: "Email", icon: Email },
+  { href: "/rss.xml", label: "RSS", icon: RSS },
 ]
-
-export const ICON_MAP: IconMap = {
-  Website: 'lucide:globe',
-  GitHub: 'lucide:github',
-  LinkedIn: 'lucide:linkedin',
-  Twitter: 'lucide:twitter',
-  Email: 'lucide:mail',
-}
