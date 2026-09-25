@@ -21,13 +21,13 @@ npm run build && git add <changed files> && git commit -m "your message" && git 
 
 Stage the files you changed by path — never `git add .` or `git add -A`. The working tree can hold untracked local files (e.g. a Hugo `themes/` checkout) that must not be committed.
 
-You can verify the result at https://sudops.pl after the Cloudflare build completes.
+You can verify the result at https://sudops.pl after the Cloudflare build completes. Cloudflare redirects URLs without a trailing slash (308); use `curl -L` or the `/`-ending URL when checking a page.
 
 **Commit messages:** never add a Claude/AI attribution trailer (no `Co-Authored-By: Claude …`, no `🤖 Generated with…`). Keep messages plain and authored by the repo owner.
 
 ## Commands
 
-- `npm run dev` — Start dev server (port 1234)
+- `npm run dev` — Start dev server on port 1234. Astro 7 runs it in the background and returns immediately — stop it with `npx astro dev stop` (logs: `npx astro dev logs`), or it keeps holding the port.
 - `npm run build` — Type-check (`astro check`) then build
 - `npm run preview` — Preview production build
 - `npx biome format --write <files>` — Format the files you changed with Biome. Don't run `npm run format` on the whole repo: it rewrites upstream files (merge noise).
@@ -102,7 +102,7 @@ The blog is a homelab series. Posts use a parent/subpost pattern where topics wi
 When converting raw drafts to Markdown:
 - Strip social media drafts (LinkedIn/Slack/Reddit) from the end
 - Callouts are directives: `:::note[Title]` … `:::` (title optional; `:::note{closed}` starts collapsed). Variants: `note`, `tip`, `warning`, `caution`, `important`. They render as "Note (Title)".
-- Interactive pieces are custom elements with an inline `<script>` in the `.md` (see `<bom-chart>` in `homelab-bom/post-sno.md`). Always guard with `if (!customElements.get("name"))`, because scripts re-run on navigation.
+- Interactive pieces are custom elements with an inline `<script>` in the `.md` (see `<bom-chart>` in `homelab-bom/post-sno.md`). Always guard with `if (!customElements.get("name"))` — `define` throws if the name is already registered (e.g. if view transitions are ever enabled).
 - Use ` ```routeros ` for MikroTik/RouterOS config blocks, `bash` for pure shell commands, plain ` ``` ` for terminal output with prompts
 - Images go in the same directory as the post, referenced with `./filename.png`
 - Use first person ("I"), never "we" — this is a personal blog
@@ -176,7 +176,7 @@ On "call it", "wrap up", "end of session" or similar, run these before saying go
    - `git status --short`: list uncommitted and untracked files. Flag local leftovers (`themes/`, `.hugo_build.lock`, `.gitmodules` from the Hugo era) — never delete or stage them, and never `git add .`.
    - Secret scan of content changed on the branch or in the working tree:
      ```
-     { git diff --name-only origin/main...HEAD -- src/content; git diff --name-only -- src/content; } | sort -u \
+     { git diff --name-only --diff-filter=d origin/main...HEAD -- src/content; git diff --name-only --diff-filter=d -- src/content; } | sort -u \
        | xargs grep -n -i -E 'BEGIN [A-Z ]*PRIVATE KEY|(api[_-]?key|token|password|secret)[[:space:]]*[:=][[:space:]]*[^[:space:]<]{8,}|client-certificate-data|client-key-data'
      ```
      Known false positive: the installer's placeholder `pullSecret: '{"auths":{"fake":…}}'` in `homelab-day1/index.md` and `homelab-validation/sno.md`.
