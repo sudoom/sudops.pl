@@ -161,3 +161,24 @@ vault/_memory/chats/homelab/  ──(the "why")──┘
 
 - **Don't publish secrets.** Drafts may reference tokens/keys/internal IPs the homelab `CLAUDE.md` "Blog notes" rule flags as not-for-commit. Reference them by name; never paste real credentials or kubeconfigs into a post.
 - Keep the existing post conventions (first person, tight prose, `routeros` code fences, `:::` callouts).
+
+## Ending a session ("call it")
+
+On "call it", "wrap up", "end of session" or similar, run these before saying goodbye, then end with a one-paragraph ledger (commits, branch and push state, anything flagged). Report findings; fix only what the session itself changed, and ask before touching anything else.
+
+1. **Build.** `npm run build` (runs `astro check`, then builds) must pass. A failure blocks the goodbye.
+2. **Docs drift.** "Blog Structure" above must match `ls src/content/blog/` and each series' subposts, and "Key Files" / "Site-specific files" must still exist. Update this file in the same commit as the change that made it stale.
+3. **Draft pipeline report.** List the homelab drafts that changed recently, and say which have material with no post in `posts/` or `src/content/blog/` yet. Report only — don't write posts unasked.
+   ```
+   git -C /Users/vadzimdziadziulia-laptop/Projects/homelab log --since="14 days ago" --name-only --format= -- 'blog/*-draft.md' | sort | uniq -c | sort -rn
+   ```
+4. **Hygiene.**
+   - `git status --short`: list uncommitted and untracked files. Flag local leftovers (`themes/`, `.hugo_build.lock`, `.gitmodules` from the Hugo era) — never delete or stage them, and never `git add .`.
+   - Secret scan of content changed on the branch or in the working tree:
+     ```
+     { git diff --name-only origin/main...HEAD -- src/content; git diff --name-only -- src/content; } | sort -u \
+       | xargs grep -n -i -E 'BEGIN [A-Z ]*PRIVATE KEY|(api[_-]?key|token|password|secret)[[:space:]]*[:=][[:space:]]*[^[:space:]<]{8,}|client-certificate-data|client-key-data'
+     ```
+     Known false positive: the installer's placeholder `pullSecret: '{"auths":{"fake":…}}'` in `homelab-day1/index.md` and `homelab-validation/sno.md`.
+   - Stale dates: new posts on a branch headed for `main` need today's `date` (see "Blog Structure"). List them with `git diff --name-only --diff-filter=A origin/main...HEAD -- src/content/blog | xargs grep -H -m1 '^date:'`. Until v2 merges, this also lists `homelab-bom`, `homelab-day2` and `homelab-design`: they were `index.mdx` on `main`, so the `.mdx` → `.md` conversion shows as an add. Those are existing posts and keep their dates.
+   - Push state: `git status -sb | head -1`. Anything unpushed on `main` is not live yet.
