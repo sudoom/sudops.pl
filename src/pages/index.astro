@@ -5,7 +5,6 @@ import Kubernetes from "@/assets/icons/tech/kubernetes.svg"
 import OpenShift from "@/assets/icons/tech/openshift.svg"
 import Terraform from "@/assets/icons/tech/terraform.svg"
 import BlogCard from "@/components/BlogCard.astro"
-import HeroSea from "@/components/HeroSea.astro"
 import MetaPage from "@/components/MetaPage.astro"
 import Layout from "@/layouts/Layout.astro"
 import { getPosts } from "@/lib/content"
@@ -33,8 +32,6 @@ const latest = (await getPosts()).slice(0, 2)
     </p>
   </home-intro>
 
-  <HeroSea />
-
   <section>
     <h2>Tech Stack</h2>
     <ul data-stack>
@@ -59,6 +56,7 @@ const latest = (await getPosts()).slice(0, 2)
 <style>
   home-intro {
     display: block;
+    margin-block-end: var(--space-xl);
 
     @media (width >= 64rem) {
       margin-block-start: -0.2em;

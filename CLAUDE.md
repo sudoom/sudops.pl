@@ -30,7 +30,7 @@ You can verify the result at https://sudops.pl after the Cloudflare build comple
 - `npm run dev` — Start dev server (port 1234)
 - `npm run build` — Type-check (`astro check`) then build
 - `npm run preview` — Preview production build
-- `npx biome format --write <files>` — Format the files you changed with Biome. Don't run `npm run format` on the whole repo: it rewrites upstream files (merge noise) and the hand-minified `HeroSea.astro`.
+- `npx biome format --write <files>` — Format the files you changed with Biome. Don't run `npm run format` on the whole repo: it rewrites upstream files (merge noise).
 
 ## Upstream template
 
@@ -74,8 +74,7 @@ Content schemas are defined in `src/content.config.ts`.
 - `astro.config.ts` — site URL, dev port, Sätteri processor and plugin list
 
 ### Site-specific files (not from upstream)
-- `src/pages/index.astro` — homepage: intro, `HeroSea`, tech stack chips, latest 2 posts
-- `src/components/HeroSea.astro` — animated SVG hero (hand-minified; don't reformat)
+- `src/pages/index.astro` — homepage: intro, tech stack chips, latest 2 posts
 - `src/components/Footer.astro` — upstream footer plus Privacy/Terms links
 - `src/pages/privacy.astro`, `src/pages/terms.astro`
 - `src/assets/logo.svg` (Great Wave mark), `src/assets/icons/linkedin.svg`, `src/assets/icons/tech/*.svg`
@@ -133,7 +132,7 @@ Raw/unformatted post drafts are stored in `posts/*.md` (gitignored). These need 
 - `test-content/authors/`, `test-content/projects/` — frontmatter formats
 
 ### Formatting
-Biome (`biome.json`, from upstream): double quotes, no semicolons, 2-space indent, 80 columns. It formats `.ts`, `.astro` and `.json`; Markdown is not formatted. Run it only on the files you changed (`npx biome format --write <files>`), and never on `src/components/HeroSea.astro`.
+Biome (`biome.json`, from upstream): double quotes, no semicolons, 2-space indent, 80 columns. It formats `.ts`, `.astro` and `.json`; Markdown is not formatted. Run it only on the files you changed (`npx biome format --write <files>`).
 
 ## Source material — homelab repo + vault
 
