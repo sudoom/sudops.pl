@@ -48,7 +48,7 @@ Before committing the merge:
 - **`bun.lock`:** upstream ships bun's lockfile; this repo uses npm. Resolve its conflict with `git rm bun.lock`.
 - **Lockfile:** run `npm install` and commit the updated `package-lock.json`. Cloudflare installs with `npm ci`, which fails when `package.json` and the lockfile disagree.
 - **New demo content:** run `git diff --cached --name-status HEAD -- src/content`. Anything upstream added there is demo content — move it to `test-content/` (keeps the reference current) or delete it; otherwise it goes live on sudops.pl.
-- **Conflicts in files we customized:** keep our version and re-apply the upstream change by hand if it matters. These upstream files carry sudops edits: `src/consts.ts`, `astro.config.ts`, `src/lib/expressive-code/config.ts`, `src/pages/index.astro`, `src/components/Footer.astro`, `src/assets/logo.svg`, the `public/` favicons and `site.webmanifest`, `.gitignore`.
+- **Conflicts in files we customized:** keep our version and re-apply the upstream change by hand if it matters. These upstream files carry sudops edits: `src/consts.ts`, `astro.config.ts`, `src/lib/expressive-code/config.ts`, `src/pages/index.astro`, `src/components/Footer.astro`, `src/styles/color.css` (palette tokens), `src/components/MetaHead.astro` (`theme-color`), `src/assets/logo.svg`, the `public/` favicons and `site.webmanifest`, `.gitignore`.
 - Run `npm run build` before opening the PR.
 
 Merge PRs that bring in upstream history with **"Create a merge commit"**, never squash. Squashing drops the upstream parent, and the next sync then conflicts everywhere. Keep upstream files (components, layouts, `src/lib`, `src/styles`) as close to upstream as possible; site-specific code lives in the files listed under "Site-specific files".
@@ -85,6 +85,7 @@ Content schemas are defined in `src/content.config.ts`.
 ### Styling
 - Native CSS with custom properties. Components use scoped `<style>` blocks and custom element names (`<prose-content>`, `<entry-info>`, …) instead of utility classes.
 - Use the tokens: spacing `--space-*`, type scale `--step-*`, radii `--radius-*`, colours `--foreground`, `--muted-foreground`, `--background`, `--muted`, `--border`.
+- Palette: the colour tokens in `src/styles/color.css` hold the sudops "Ayvazovskyi" palette (Day `#f0f9ff` / Night deep sea blue `#0b1026`, teal `--primary`) instead of upstream's greys. Change colours there, not per component.
 - Light/dark follows the system setting; the sidebar toggle overrides it via `data-theme` on `<html>`.
 
 ### Blog Structure
