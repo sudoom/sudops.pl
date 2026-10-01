@@ -48,7 +48,7 @@ Before committing the merge:
 - **`bun.lock`:** upstream ships bun's lockfile; this repo uses npm. Resolve its conflict with `git rm bun.lock`.
 - **Lockfile:** run `npm install` and commit the updated `package-lock.json`. Cloudflare installs with `npm ci`, which fails when `package.json` and the lockfile disagree.
 - **New demo content:** run `git diff --cached --name-status HEAD -- src/content`. Anything upstream added there is demo content — move it to `test-content/` (keeps the reference current) or delete it; otherwise it goes live on sudops.pl.
-- **Conflicts in files we customized:** keep our version and re-apply the upstream change by hand if it matters. These upstream files carry sudops edits: `src/consts.ts`, `astro.config.ts`, `src/lib/expressive-code/config.ts`, `src/pages/index.astro`, `src/components/Footer.astro`, `src/styles/color.css` (palette tokens), `src/components/MetaHead.astro` (`theme-color`), `src/assets/logo.svg`, the `public/` favicons and `site.webmanifest`, `.gitignore`.
+- **Conflicts in files we customized:** keep our version and re-apply the upstream change by hand if it matters. These upstream files carry sudops edits: `src/consts.ts`, `astro.config.ts`, `src/lib/expressive-code/config.ts`, `src/pages/index.astro`, `src/components/Footer.astro`, `src/components/BlogCard.astro` (reading time, series parts, no tags), `src/pages/blog/[...id].astro` (reading time, tag colour), `src/styles/typography-inline.css` (teal link underline), `src/styles/color.css` (palette tokens), `src/components/MetaHead.astro` (`theme-color`), `src/assets/logo.svg`, the `public/` favicons and `site.webmanifest`, `.gitignore`.
 - Run `npm run build` before opening the PR.
 
 Merge PRs that bring in upstream history with **"Create a merge commit"**, never squash. Squashing drops the upstream parent, and the next sync then conflicts everywhere. Keep upstream files (components, layouts, `src/lib`, `src/styles`) as close to upstream as possible; site-specific code lives in the files listed under "Site-specific files".
@@ -76,6 +76,7 @@ Content schemas are defined in `src/content.config.ts`.
 ### Site-specific files (not from upstream)
 - `src/pages/index.astro` — homepage: intro, tech stack chips, latest 2 posts
 - `src/components/Footer.astro` — upstream footer plus Privacy/Terms links
+- `src/lib/reading-time.ts` — reading time for post lists and post headers (prose words at 220/min; code blocks skipped; a series counts all its parts)
 - `src/pages/privacy.astro`, `src/pages/terms.astro`
 - `src/assets/logo.svg` (Great Wave mark), `src/assets/icons/linkedin.svg`, `src/assets/icons/tech/*.svg`
 - `src/grammars/routeros.tmLanguage.json`

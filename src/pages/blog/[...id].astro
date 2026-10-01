@@ -6,6 +6,7 @@ import SeriesReader from "@/components/SeriesReader.astro"
 import TableOfContents from "@/components/TableOfContents.astro"
 import Layout from "@/layouts/Layout.astro"
 import { getPosts, getSubposts, pageTitle } from "@/lib/content"
+import { readingTime } from "@/lib/reading-time"
 import { formatDate, isSubpost, subpostSlug } from "@/lib/utils"
 import { Image } from "astro:assets"
 import { getEntries, render, type CollectionEntry } from "astro:content"
@@ -103,6 +104,9 @@ if (isSubpost(post.id)) {
             <time datetime={entry.data.date.toISOString()}
               >{formatDate(entry.data.date)}</time
             >
+            <reading-time
+              >{readingTime(i === 0 ? chain : [entry])} min read</reading-time
+            >
             {entry.data.tags && (
               <post-tags>
                 {entry.data.tags.map((tag) => (
@@ -184,9 +188,9 @@ if (isSubpost(post.id)) {
         }
       }
 
-      post-authors ~ time::before {
+      > :not(:last-child)::after {
         content: "·";
-        margin-inline-end: var(--space-3xs);
+        margin-inline-start: var(--space-3xs);
       }
 
       post-tags {
@@ -197,16 +201,12 @@ if (isSubpost(post.id)) {
         gap: var(--space-3xs);
 
         a {
-          color: color-mix(in oklab, var(--muted-foreground) 50%, transparent);
+          color: var(--muted-foreground);
 
           &:hover {
-            color: var(--foreground);
+            color: var(--primary);
           }
         }
-      }
-
-      time ~ post-tags::before {
-        content: "·";
       }
 
       a {

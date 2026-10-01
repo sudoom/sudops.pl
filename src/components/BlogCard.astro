@@ -1,4 +1,6 @@
 ---
+import { getSubposts } from "@/lib/content"
+import { readingTime } from "@/lib/reading-time"
 import { formatDate } from "@/lib/utils"
 import { Image } from "astro:assets"
 import { getEntries, type CollectionEntry } from "astro:content"
@@ -7,6 +9,8 @@ type Props = { post: CollectionEntry<"blog"> }
 
 const { post } = Astro.props
 const authors = await getEntries(post.data.authors)
+const parts = (await getSubposts()).get(post.id) ?? []
+const minutes = readingTime([post, ...parts])
 ---
 
 <li>
@@ -40,13 +44,12 @@ const authors = await getEntries(post.data.authors)
       <time datetime={post.data.date.toISOString()}
         >{formatDate(post.data.date)}</time
       >
-      {post.data.tags && (
-          <entry-tags>
-            {post.data.tags.map((tag) => (
-              <span>#{tag}</span>
-            ))}
-          </entry-tags>
+      {parts.length > 0 && (
+          <entry-parts>
+            {parts.length} {parts.length === 1 ? "part" : "parts"}
+          </entry-parts>
         )}
+      <reading-time>{minutes} min read</reading-time>
     </entry-meta>
     <p>{post.data.description}</p>
   </entry-info>
@@ -76,6 +79,10 @@ const authors = await getEntries(post.data.authors)
         font-size: var(--step-1);
         line-height: calc(var(--leading-offset) + 1em);
         font-weight: var(--font-weight-medium);
+
+        &:hover {
+          color: var(--primary);
+        }
       }
 
       entry-meta {
@@ -107,27 +114,9 @@ const authors = await getEntries(post.data.authors)
           }
         }
 
-        entry-authors ~ time::before {
+        > :not(:last-child)::after {
           content: "·";
-          margin-inline-end: var(--space-3xs);
-        }
-
-        entry-tags {
-          display: flex;
-          flex-wrap: wrap;
-          gap: var(--space-3xs);
-
-          span {
-            color: color-mix(
-              in oklab,
-              var(--muted-foreground) 50%,
-              transparent
-            );
-          }
-        }
-
-        time ~ entry-tags::before {
-          content: "·";
+          margin-inline-start: var(--space-3xs);
         }
       }
 

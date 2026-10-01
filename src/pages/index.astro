@@ -11,7 +11,7 @@ import { getPosts } from "@/lib/content"
 
 const STACK = [
   { name: "Kubernetes", icon: Kubernetes },
-  { name: "Openshift", icon: OpenShift },
+  { name: "OpenShift", icon: OpenShift },
   { name: "Google Anthos", icon: GoogleCloud },
   { name: "Terraform", icon: Terraform },
   { name: "Azure", icon: Azure },
@@ -97,13 +97,13 @@ const latest = (await getPosts()).slice(0, 2)
   [data-stack] {
     display: flex;
     flex-wrap: wrap;
-    gap: var(--space-xs);
+    gap: var(--space-2xs);
 
     li {
       display: inline-flex;
       align-items: center;
       gap: var(--space-2xs);
-      padding: var(--space-3xs) var(--space-xs);
+      padding: var(--space-3xs) var(--space-2xs);
       border: 1px solid var(--border);
       border-radius: var(--radius-lg);
       background-color: color-mix(in oklab, var(--muted) 30%, transparent);
