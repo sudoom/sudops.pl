@@ -29,7 +29,7 @@ You can verify the result at https://sudops.pl after the Cloudflare build comple
 
 - `npm run dev` — Start dev server on port 1234. Astro 7 runs it in the background and returns immediately — stop it with `npx astro dev stop` (logs: `npx astro dev logs`), or it keeps holding the port.
 - `npm run build` — Type-check (`astro check`) then build
-- `npm run preview` — Preview production build
+- `npm run preview` — Serve the production build (`dist/`). Also runs in the background — stop it with `npx astro preview stop`.
 - `npx biome format --write <files>` — Format the files you changed with Biome. Don't run `npm run format` on the whole repo: it rewrites upstream files (merge noise).
 
 ## Upstream template
