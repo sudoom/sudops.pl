@@ -1,0 +1,78 @@
+<style is:global>
+  .expressive-code figure.frame[data-collapsed] pre {
+    max-block-size: calc(18lh + 2 * var(--ec-codePadBlk, 1rem));
+    overflow-y: hidden;
+  }
+
+  .expressive-code [data-code-expand] {
+    position: relative;
+    display: block;
+    inline-size: 100%;
+    padding: var(--space-2) var(--space-3);
+    font: inherit;
+    font-size: var(--step--1);
+    color: var(--muted-foreground);
+    text-align: center;
+    cursor: pointer;
+    background: var(--ec-codeBg, var(--background));
+    border: 0;
+    border-block-start: var(--ec-brdWd, 1px) solid
+      var(--ec-brdCol, var(--border));
+    border-end-start-radius: inherit;
+    border-end-end-radius: inherit;
+
+    &:hover {
+      color: var(--foreground);
+    }
+  }
+
+  .expressive-code figure.frame[data-collapsed] [data-code-expand]::before {
+    content: "";
+    position: absolute;
+    inset-inline: 0;
+    inset-block-end: 100%;
+    block-size: 4rem;
+    pointer-events: none;
+    background: linear-gradient(
+      to bottom,
+      transparent,
+      var(--ec-codeBg, var(--background))
+    );
+  }
+</style>
+
+<script>
+  const MAX_LINES = 24
+
+  for (const figure of document.querySelectorAll<HTMLElement>(
+    ".expressive-code figure.frame",
+  )) {
+    const pre = figure.querySelector("pre")
+    if (!pre) continue
+    const count = pre.querySelectorAll(".ec-line").length
+    if (count <= MAX_LINES) continue
+
+    const button = document.createElement("button")
+    button.type = "button"
+    button.setAttribute("data-code-expand", "")
+
+    const render = () => {
+      const collapsed = figure.hasAttribute("data-collapsed")
+      button.setAttribute("aria-expanded", String(!collapsed))
+      button.textContent = collapsed ? `Show all ${count} lines` : "Show less"
+    }
+
+    button.addEventListener("click", () => {
+      const collapsing = !figure.hasAttribute("data-collapsed")
+      figure.toggleAttribute("data-collapsed", collapsing)
+      render()
+      if (collapsing && figure.getBoundingClientRect().top < 0) {
+        figure.scrollIntoView({ block: "nearest" })
+      }
+    })
+
+    figure.setAttribute("data-collapsed", "")
+    render()
+    pre.after(button)
+  }
+</script>

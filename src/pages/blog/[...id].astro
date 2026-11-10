@@ -1,5 +1,6 @@
 ---
 import Lightbox from "@/components/Lightbox.astro"
+import CodeExpand from "@/components/CodeExpand.astro"
 import MetaPost from "@/components/MetaPost.astro"
 import PostActions from "@/components/PostActions.astro"
 import PostNav from "@/components/PostNav.astro"
@@ -75,6 +76,7 @@ if (isSubpost(post.id)) {
   <PostActions slot="actions" prev={prev} next={next} />
   <ScrollToTop floating />
   <Lightbox />
+  <CodeExpand />
   {rendered.map(({ entry, Content, authors }, i) => (
       <article
         id={i === 0 ? undefined : subpostSlug(entry.id)}
