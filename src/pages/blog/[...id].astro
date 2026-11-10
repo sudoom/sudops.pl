@@ -80,10 +80,13 @@ if (isSubpost(post.id)) {
         data-url={`/blog/${entry.id}`}
         data-title={pageTitle(entry.data.title)}
         data-embedded={i > 0 || undefined}
+        data-pagefind-body={entry.id === post.id || undefined}
       >
         <header>
-          <h1>{entry.data.title}</h1>
-          <post-meta>
+          <h1 data-pagefind-meta={entry.id === post.id ? "title" : undefined}>
+            {entry.data.title}
+          </h1>
+          <post-meta data-pagefind-ignore="all">
             {authors.length > 0 && (
               <post-authors>
                 <author-avatars>

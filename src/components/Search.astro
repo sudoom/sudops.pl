@@ -1,0 +1,335 @@
+---
+import SearchIcon from "@/assets/icons/search.svg"
+---
+
+<button
+  id="search-open"
+  data-icon-button
+  aria-label="Search"
+  aria-keyshortcuts="/"
+  aria-haspopup="dialog"
+>
+  <SearchIcon />
+</button>
+
+<dialog data-search aria-label="Search posts">
+  <search-panel>
+    <input
+      type="search"
+      placeholder="Search posts"
+      aria-label="Search posts"
+      autocomplete="off"
+      autocapitalize="off"
+      spellcheck="false"
+    >
+    <search-status role="status" aria-live="polite"></search-status>
+    <search-results></search-results>
+  </search-panel>
+</dialog>
+
+<style>
+  dialog {
+    inline-size: min(40rem, 92vw);
+    max-inline-size: none;
+    max-block-size: none;
+    margin: 12vh auto auto;
+    padding: 0;
+    color: var(--foreground);
+    background-color: var(--background);
+    border: 1px solid var(--border);
+    border-radius: var(--radius-lg);
+    box-shadow: 0 1.5rem 4rem rgb(0 0 0 / 0.25);
+
+    &::backdrop {
+      background-color: rgb(2 6 23 / 0.6);
+    }
+  }
+
+  search-panel {
+    display: flex;
+    flex-direction: column;
+  }
+
+  input {
+    inline-size: 100%;
+    padding: var(--space-xs) var(--space-s);
+    font: inherit;
+    font-size: var(--step-0);
+    color: inherit;
+    background: transparent;
+    border: 0;
+    border-radius: var(--radius-lg);
+    outline: none;
+
+    &::placeholder {
+      color: var(--muted-foreground);
+    }
+
+    &:focus-visible {
+      outline: 2px solid var(--primary);
+      outline-offset: -2px;
+    }
+  }
+
+  search-status {
+    display: block;
+    padding: 0 var(--space-s);
+    color: var(--muted-foreground);
+    font-size: var(--step--1);
+
+    &:not(:empty) {
+      padding-block: var(--space-xs);
+      border-block-start: 1px solid var(--border);
+    }
+  }
+
+  search-results {
+    display: block;
+    max-block-size: 60vh;
+    overflow-y: auto;
+
+    &:not(:empty) {
+      border-block-start: 1px solid var(--border);
+    }
+
+    :global(search-result) {
+      display: block;
+      padding: var(--space-xs) var(--space-s);
+
+      &:not(:last-child) {
+        border-block-end: 1px solid var(--border);
+      }
+    }
+
+    :global(a) {
+      display: block;
+      padding: var(--space-3xs) var(--space-2xs);
+      margin-inline: calc(-1 * var(--space-2xs));
+      color: var(--foreground);
+      text-decoration-line: none;
+      border-radius: var(--radius-md);
+
+      &:hover,
+      &:focus-visible {
+        background-color: color-mix(in oklab, var(--muted) 60%, transparent);
+      }
+
+      &:focus-visible {
+        outline: 2px solid var(--primary);
+      }
+    }
+
+    :global(search-result-title) {
+      display: block;
+      font-weight: var(--font-weight-medium);
+    }
+
+    :global(search-result-heading) {
+      display: block;
+      font-size: var(--step--1);
+      color: var(--primary);
+    }
+
+    :global(search-result-excerpt) {
+      display: block;
+      font-size: var(--step--1);
+      color: var(--muted-foreground);
+    }
+
+    :global(mark) {
+      color: var(--foreground);
+      background-color: color-mix(in oklab, var(--primary) 25%, transparent);
+      border-radius: var(--radius-xs);
+    }
+
+    :global(button) {
+      display: block;
+      inline-size: 100%;
+      padding: var(--space-xs) var(--space-s);
+      font: inherit;
+      font-size: var(--step--1);
+      color: var(--muted-foreground);
+      cursor: pointer;
+
+      &:hover,
+      &:focus-visible {
+        color: var(--foreground);
+        background-color: color-mix(in oklab, var(--muted) 60%, transparent);
+      }
+    }
+  }
+</style>
+
+<style is:global>
+  html:has(dialog[data-search][open]) {
+    overflow: hidden;
+  }
+</style>
+
+<script>
+  type Sub = { title: string; url: string; excerpt: string }
+  type Data = {
+    url: string
+    meta: { title?: string }
+    excerpt: string
+    sub_results: Sub[]
+  }
+  type Hit = { data: () => Promise<Data> }
+  type Pagefind = {
+    init: () => Promise<void>
+    debouncedSearch: (q: string) => Promise<{ results: Hit[] } | null>
+  }
+
+  const PAGE = 8
+  const dialog = document.querySelector<HTMLDialogElement>(
+    "dialog[data-search]",
+  )
+  const openButton = document.getElementById("search-open")
+  const input = dialog?.querySelector<HTMLInputElement>("input")
+  const status = dialog?.querySelector<HTMLElement>("search-status")
+  const list = dialog?.querySelector<HTMLElement>("search-results")
+
+  if (dialog && openButton && input && status && list) {
+    let engine: Promise<Pagefind> | undefined
+    let token = 0
+
+    const load = () => {
+      engine ??= (async () => {
+        const url = "/pagefind/pagefind.js"
+        const mod: Pagefind = await import(/* @vite-ignore */ url)
+        await mod.init()
+        return mod
+      })()
+      engine.catch(() => {
+        engine = undefined
+      })
+      return engine
+    }
+
+    const clear = () => {
+      list.replaceChildren()
+      status.textContent = ""
+    }
+
+    const text = (tag: string, content: string) => {
+      const el = document.createElement(tag)
+      el.textContent = content
+      return el
+    }
+
+    const excerpt = (html: string) => {
+      const el = document.createElement("search-result-excerpt")
+      el.innerHTML = html
+      return el
+    }
+
+    const render = async (hits: Hit[], from: number, to: number) => {
+      const items = await Promise.all(hits.slice(from, to).map((h) => h.data()))
+      for (const item of items) {
+        const row = document.createElement("search-result")
+        const link = document.createElement("a")
+        link.href = item.url
+        link.append(text("search-result-title", item.meta.title ?? item.url))
+        const subs = item.sub_results.slice(0, 3)
+        if (subs.length === 0) {
+          link.append(excerpt(item.excerpt))
+          row.append(link)
+        } else {
+          row.append(link)
+          for (const sub of subs) {
+            const a = document.createElement("a")
+            a.href = sub.url
+            if (sub.url.includes("#") && sub.title)
+              a.append(text("search-result-heading", sub.title))
+            a.append(excerpt(sub.excerpt))
+            row.append(a)
+          }
+        }
+        list.append(row)
+      }
+    }
+
+    const run = async (q: string) => {
+      const mine = ++token
+      if (!q.trim()) return clear()
+      let pagefind: Pagefind
+      try {
+        pagefind = await load()
+      } catch {
+        if (mine === token) {
+          list.replaceChildren()
+          status.textContent = "Search is available in the production build."
+        }
+        return
+      }
+      const found = await pagefind.debouncedSearch(q)
+      if (!found || mine !== token) return
+      list.replaceChildren()
+      if (found.results.length === 0) {
+        status.textContent = `No results for "${q}"`
+        return
+      }
+      status.textContent = ""
+      let shown = Math.min(PAGE, found.results.length)
+      await render(found.results, 0, shown)
+      if (mine !== token) return
+      if (shown < found.results.length) {
+        const more = text("button", "Show more")
+        more.addEventListener("click", async () => {
+          more.remove()
+          const next = Math.min(shown + PAGE, found.results.length)
+          await render(found.results, shown, next)
+          shown = next
+          if (mine === token && shown < found.results.length) list.append(more)
+        })
+        list.append(more)
+      }
+    }
+
+    const open = () => {
+      if (dialog.open) return
+      dialog.showModal()
+      input.focus()
+      input.select()
+      void load().catch(() => {})
+    }
+
+    openButton.addEventListener("click", open)
+    input.addEventListener("input", () => void run(input.value))
+
+    dialog.addEventListener("click", (event) => {
+      if (event.target === dialog) return dialog.close()
+      // any result link, even one SeriesReader handles in place
+      if ((event.target as Element).closest("search-results a")) dialog.close()
+    })
+
+    dialog.addEventListener("keydown", (event) => {
+      if (event.key !== "ArrowDown" && event.key !== "ArrowUp") return
+      const stops = [
+        input,
+        ...list.querySelectorAll<HTMLElement>("a[href], button"),
+      ]
+      const at = stops.indexOf(document.activeElement as HTMLElement)
+      const next = stops[at + (event.key === "ArrowDown" ? 1 : -1)]
+      event.preventDefault()
+      if (next) {
+        next.focus()
+        if (next !== input) next.scrollIntoView({ block: "nearest" })
+      }
+    })
+
+    document.addEventListener("keydown", (event) => {
+      if (event.defaultPrevented || dialog.open) return
+      if ((event.metaKey || event.ctrlKey) && event.key.toLowerCase() === "k") {
+        event.preventDefault()
+        return open()
+      }
+      if (event.key !== "/" || event.metaKey || event.ctrlKey || event.altKey)
+        return
+      const el = event.target as HTMLElement | null
+      if (el?.closest("input, textarea, select, [contenteditable]")) return
+      event.preventDefault()
+      open()
+    })
+  }
+</script>

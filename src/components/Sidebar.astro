@@ -1,5 +1,6 @@
 ---
 import Logo from "@/assets/logo.svg"
+import Search from "@/components/Search.astro"
 import ThemeToggle from "@/components/ThemeToggle.astro"
 import { NAVIGATION, SITE } from "@/consts"
 import { normalizePath } from "@/lib/utils"
@@ -63,6 +64,7 @@ const section = NAVIGATION.find(
   </sidebar-inner>
   <sidebar-toggle>
     <ThemeToggle />
+    <Search />
     <slot name="actions" />
   </sidebar-toggle>
 </aside>
