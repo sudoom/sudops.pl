@@ -2,6 +2,7 @@
 import Lightbox from "@/components/Lightbox.astro"
 import MetaPost from "@/components/MetaPost.astro"
 import PostActions from "@/components/PostActions.astro"
+import PostNav from "@/components/PostNav.astro"
 import ScrollToTop from "@/components/ScrollToTop.astro"
 import SeriesReader from "@/components/SeriesReader.astro"
 import TableOfContents from "@/components/TableOfContents.astro"
@@ -138,6 +139,7 @@ if (isSubpost(post.id)) {
         </prose-content>
       </article>
     ))}
+  <PostNav prev={prev} next={next} />
   {chain.length > 1 && <SeriesReader />}
 </Layout>
 
