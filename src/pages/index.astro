@@ -6,8 +6,9 @@ import OpenShift from "@/assets/icons/tech/openshift.svg"
 import Terraform from "@/assets/icons/tech/terraform.svg"
 import BlogCard from "@/components/BlogCard.astro"
 import MetaPage from "@/components/MetaPage.astro"
+import SeriesIndex from "@/components/SeriesIndex.astro"
 import Layout from "@/layouts/Layout.astro"
-import { getPosts, getSubposts } from "@/lib/content"
+import { getPosts } from "@/lib/content"
 
 const STACK = [
   { name: "Kubernetes", icon: Kubernetes },
@@ -19,11 +20,6 @@ const STACK = [
 
 const allPosts = await getPosts()
 const latest = allPosts.slice(0, 2)
-const subposts = await getSubposts()
-const ordered = [...allPosts].reverse().map((post) => ({
-  post,
-  parts: subposts.get(post.id)?.length ?? 0,
-}))
 ---
 
 <Layout>
@@ -50,22 +46,9 @@ const ordered = [...allPosts].reverse().map((post) => ({
     </ul>
   </section>
 
-  <section>
-    <h2>Start here</h2>
-    <p data-lead>
-      The posts build on each other. This is the order I wrote them in.
-    </p>
-    <ol data-start>
-      {ordered.map(({ post, parts }) => (
-          <li>
-            <a href={`/blog/${post.id}`}>{post.data.title}</a>
-            {parts > 0 && (
-              <small>{parts === 1 ? "1 part" : `${parts} parts`}</small>
-            )}
-          </li>
-        ))}
-    </ol>
-  </section>
+  <series-inline>
+    <SeriesIndex />
+  </series-inline>
 
   <section>
     <h2>Latest Posts</h2>
@@ -74,6 +57,8 @@ const ordered = [...allPosts].reverse().map((post) => ({
     </ul>
     <a href="/blog" data-more>See all posts &rarr;</a>
   </section>
+
+  <SeriesIndex slot="rail" compact />
 </Layout>
 
 <style>
@@ -106,8 +91,18 @@ const ordered = [...allPosts].reverse().map((post) => ({
     }
   }
 
-  section + section {
+  section + section,
+  section + series-inline,
+  series-inline + section {
     margin-block-start: var(--space-xl);
+  }
+
+  series-inline {
+    display: block;
+
+    @media (width >= 64rem) {
+      display: none;
+    }
   }
 
   h2 {
@@ -120,16 +115,12 @@ const ordered = [...allPosts].reverse().map((post) => ({
   [data-stack] {
     display: flex;
     flex-wrap: wrap;
-    gap: var(--space-2xs);
+    gap: var(--space-xs) var(--space-m);
 
     li {
       display: inline-flex;
       align-items: center;
       gap: var(--space-2xs);
-      padding: var(--space-3xs) var(--space-2xs);
-      border: 1px solid var(--border);
-      border-radius: var(--radius-lg);
-      background-color: color-mix(in oklab, var(--muted) 30%, transparent);
       font-size: var(--step--1);
       color: var(--foreground);
 
@@ -138,48 +129,6 @@ const ordered = [...allPosts].reverse().map((post) => ({
         block-size: 1.25rem;
         flex-shrink: 0;
       }
-    }
-  }
-
-  [data-lead] {
-    margin-block-end: var(--space-xs);
-    font-size: var(--step--1);
-    color: var(--muted-foreground);
-  }
-
-  [data-start] {
-    display: flex;
-    flex-direction: column;
-    gap: var(--space-2xs);
-    counter-reset: start;
-
-    li {
-      display: flex;
-      align-items: baseline;
-      gap: var(--space-xs);
-      counter-increment: start;
-
-      &::before {
-        content: counter(start);
-        min-inline-size: 2ch;
-        font-size: var(--step--1);
-        font-variant-numeric: tabular-nums;
-        text-align: end;
-        color: var(--muted-foreground);
-      }
-    }
-
-    a {
-      color: var(--foreground);
-
-      &:hover {
-        color: var(--primary);
-      }
-    }
-
-    small {
-      font-size: var(--step--1);
-      color: var(--muted-foreground);
     }
   }
 

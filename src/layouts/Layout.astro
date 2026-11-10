@@ -40,6 +40,9 @@ const { crumbs } = Astro.props
         {Astro.slots.has("toc") && (
             <page-toc><slot name="toc" /></page-toc>
           )}
+        {Astro.slots.has("rail") && (
+            <page-rail><slot name="rail" /></page-rail>
+          )}
       </page-header>
       <page-content>
         <main><slot /></main>
@@ -97,7 +100,8 @@ const { crumbs } = Astro.props
     }
   }
 
-  page-toc {
+  page-toc,
+  page-rail {
     display: block;
     min-width: 0;
     grid-column: 10 / 13;
@@ -108,6 +112,14 @@ const { crumbs } = Astro.props
       inset-block: var(--page-offset-top) var(--page-offset-bottom);
       inset-inline-end: var(--grid-edge);
       width: calc(3 * var(--grid-column-width) + 2 * var(--grid-gutter));
+    }
+  }
+
+  page-rail {
+    overflow-y: auto;
+
+    @media (width < 64rem) {
+      display: none;
     }
   }
 

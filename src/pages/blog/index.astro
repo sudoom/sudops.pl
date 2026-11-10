@@ -2,10 +2,11 @@
 import BlogCard from "@/components/BlogCard.astro"
 import MetaPage from "@/components/MetaPage.astro"
 import Layout from "@/layouts/Layout.astro"
-import { getPosts } from "@/lib/content"
+import { getPosts, getTags } from "@/lib/content"
 
 const posts = await getPosts()
 const first = posts.at(-1)
+const tags = await getTags()
 ---
 
 <Layout>
@@ -15,9 +16,19 @@ const first = posts.at(-1)
         New here? Start with <a href={`/blog/${first.id}`}>{first.data.title}</a>{"."}
       </p>
     )}
-  <ul>
+  <ul data-posts>
     {posts.map((post) => <BlogCard post={post} />)}
   </ul>
+  <blog-topics slot="rail">
+    <h2>Topics</h2>
+    <ul>
+      {[...tags].map(([tag, tagged]) => (
+          <li>
+            <a href={`/tags/${tag}`}>#{tag}<tag-count>{tagged.length}</tag-count></a>
+          </li>
+        ))}
+    </ul>
+  </blog-topics>
 </Layout>
 
 <style>
@@ -32,9 +43,45 @@ const first = posts.at(-1)
     }
   }
 
-  ul {
+  [data-posts] {
     display: flex;
     flex-direction: column;
     gap: var(--space-m);
+  }
+
+  blog-topics {
+    display: block;
+
+    h2 {
+      margin-block-end: var(--space-2xs);
+      font-size: var(--step-0);
+      font-weight: var(--font-weight-medium);
+      color: var(--foreground);
+    }
+
+    ul {
+      display: flex;
+      flex-wrap: wrap;
+      gap: var(--space-3xs);
+    }
+
+    a {
+      display: inline-block;
+      padding-inline: var(--space-2xs);
+      font-size: var(--step--1);
+      color: var(--muted-foreground);
+      background-color: color-mix(in oklab, var(--muted) 50%, transparent);
+      border-radius: var(--radius-full);
+      text-decoration-line: none;
+
+      &:hover {
+        color: var(--foreground);
+      }
+    }
+
+    tag-count {
+      margin-inline-start: var(--space-3xs);
+      opacity: 0.6;
+    }
   }
 </style>

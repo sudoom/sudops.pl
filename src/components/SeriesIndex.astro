@@ -1,0 +1,93 @@
+---
+import { getPosts, getSubposts } from "@/lib/content"
+
+type Props = { compact?: boolean }
+
+const { compact = false } = Astro.props
+
+const allPosts = await getPosts()
+const subposts = await getSubposts()
+const ordered = [...allPosts].reverse().map((post) => ({
+  post,
+  parts: subposts.get(post.id)?.length ?? 0,
+}))
+---
+
+<section data-compact={compact || undefined}>
+  <h2>Start here</h2>
+  <p data-lead>
+    The posts build on each other. This is the order I wrote them in.
+  </p>
+  <ol>
+    {ordered.map(({ post, parts }) => (
+        <li>
+          <a href={`/blog/${post.id}`}>{post.data.title}</a>
+          {parts > 0 && (
+            <small>{parts === 1 ? "1 part" : `${parts} parts`}</small>
+          )}
+        </li>
+      ))}
+  </ol>
+</section>
+
+<style>
+  h2 {
+    margin-block-end: var(--space-s);
+    font-size: var(--step-1);
+    font-weight: var(--font-weight-medium);
+    color: var(--foreground);
+  }
+
+  [data-lead] {
+    margin-block-end: var(--space-xs);
+    font-size: var(--step--1);
+    color: var(--muted-foreground);
+  }
+
+  ol {
+    display: flex;
+    flex-direction: column;
+    gap: var(--space-2xs);
+    counter-reset: start;
+
+    li {
+      display: flex;
+      align-items: baseline;
+      gap: var(--space-xs);
+      counter-increment: start;
+
+      &::before {
+        content: counter(start);
+        min-inline-size: 2ch;
+        font-size: var(--step--1);
+        font-variant-numeric: tabular-nums;
+        text-align: end;
+        color: var(--muted-foreground);
+      }
+    }
+
+    a {
+      color: var(--foreground);
+
+      &:hover {
+        color: var(--primary);
+      }
+    }
+
+    small {
+      font-size: var(--step--1);
+      color: var(--muted-foreground);
+    }
+  }
+
+  [data-compact] {
+    h2 {
+      margin-block-end: var(--space-2xs);
+      font-size: var(--step-0);
+    }
+
+    ol {
+      font-size: var(--step--1);
+    }
+  }
+</style>
