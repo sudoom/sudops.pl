@@ -28,7 +28,7 @@ You can verify the result at https://sudops.pl after the Cloudflare build comple
 ## Commands
 
 - `npm run dev` — Start dev server on port 1234. Astro 7 runs it in the background and returns immediately — stop it with `npx astro dev stop` (logs: `npx astro dev logs`), or it keeps holding the port.
-- `npm run build` — Type-check (`astro check`) then build
+- `npm run build` — Type-check (`astro check`), build, then index the site for search (`pagefind --site dist`). Search only works in the built site (`npm run preview` or a deploy), not in `npm run dev`.
 - `npm run preview` — Serve the production build (`dist/`). Also runs in the background — stop it with `npx astro preview stop`.
 - `npx biome format --write <files>` — Format the files you changed with Biome. Don't run `npm run format` on the whole repo: it rewrites upstream files (merge noise).
 
@@ -48,7 +48,7 @@ Before committing the merge:
 - **`bun.lock`:** upstream ships bun's lockfile; this repo uses npm. Resolve its conflict with `git rm bun.lock`.
 - **Lockfile:** run `npm install` and commit the updated `package-lock.json`. Cloudflare installs with `npm ci`, which fails when `package.json` and the lockfile disagree.
 - **New demo content:** run `git diff --cached --name-status HEAD -- src/content`. Anything upstream added there is demo content — move it to `test-content/` (keeps the reference current) or delete it; otherwise it goes live on sudops.pl.
-- **Conflicts in files we customized:** keep our version and re-apply the upstream change by hand if it matters. These upstream files carry sudops edits: `src/consts.ts`, `astro.config.ts`, `src/lib/expressive-code/config.ts`, `src/pages/index.astro`, `src/components/Footer.astro`, `src/components/BlogCard.astro` (reading time, series parts, no tags), `src/pages/blog/[...id].astro` (reading time, tag colour), `src/styles/typography-inline.css` (teal link underline), `src/styles/typography-tables.css` (no per-cell `min-width`), `src/styles/color.css` (palette tokens), `src/components/MetaHead.astro` (`theme-color`), `src/assets/logo.svg`, the `public/` favicons and `site.webmanifest`, `.gitignore`.
+- **Conflicts in files we customized:** keep our version and re-apply the upstream change by hand if it matters. These upstream files carry sudops edits: `src/consts.ts`, `astro.config.ts`, `src/lib/expressive-code/config.ts`, `src/pages/index.astro`, `src/components/Footer.astro`, `src/components/BlogCard.astro` (reading time, series parts, no tags), `src/pages/blog/[...id].astro` (reading time, tag colour, `<Lightbox />`, `data-pagefind-*` attributes), `src/components/Sidebar.astro` (`<Search />`), `src/components/MetaPost.astro` (generated share image as fallback), `package.json` (`build` script, extra dependencies), `src/styles/typography-inline.css` (teal link underline), `src/styles/typography-tables.css` (no per-cell `min-width`), `src/styles/color.css` (palette tokens), `src/components/MetaHead.astro` (`theme-color`), `src/assets/logo.svg`, the `public/` favicons and `site.webmanifest`, `.gitignore`.
 - Run `npm run build` before opening the PR.
 
 Merge PRs that bring in upstream history with **"Create a merge commit"**, never squash. Squashing drops the upstream parent, and the next sync then conflicts everywhere. Keep upstream files (components, layouts, `src/lib`, `src/styles`) as close to upstream as possible; site-specific code lives in the files listed under "Site-specific files".
@@ -78,6 +78,9 @@ Content schemas are defined in `src/content.config.ts`.
 - `src/components/Footer.astro` — upstream footer plus Privacy/Terms links
 - `src/lib/reading-time.ts` — reading time for post lists and post headers (prose words at 220/min; code blocks skipped; a series counts all its parts)
 - `src/pages/privacy.astro`, `src/pages/terms.astro`
+- `src/components/Lightbox.astro` — click or Enter on a post image opens it full-size; arrow keys step through the images of that article
+- `src/components/Search.astro`, `src/assets/icons/search.svg` — search dialog (sidebar button, `/` or Cmd/Ctrl+K) on top of the Pagefind index. Each post page indexes only its own `<article>` (`data-pagefind-body`), because a series URL renders the whole series; `.gutter` and `.sr-only` are excluded in the `build` script.
+- `src/lib/og-image.ts`, `src/pages/og/[...id].png.ts` — 1200×630 share images, one per post and subpost plus `/og/site.png` for every other page. Text is drawn as outlines from the IBM Plex Sans files with `fontkit` and rasterised with `sharp`, so the build needs no system fonts. Only the regular weight is available (`getVariation` fails on these woff2 files). A post with `image:` in its frontmatter uses that instead.
 - `src/assets/logo.svg` (Great Wave mark), `src/assets/icons/linkedin.svg`, `src/assets/icons/tech/*.svg`
 - `src/grammars/routeros.tmLanguage.json`
 - Upstream files with sudops edits are listed under "Upstream template" — keep ours when they conflict.
@@ -120,6 +123,8 @@ When converting raw drafts to Markdown:
 - `/tags`, `/tags/<tag>` — tag index
 - `/authors`, `/authors/vd` — built but not in the nav
 - `/privacy`, `/terms` — linked from the footer
+- `/og/<post>.png`, `/og/site.png` — generated share images
+- `/pagefind/` — search index, written by the build
 
 ### Raw Blog Post Drafts
 
