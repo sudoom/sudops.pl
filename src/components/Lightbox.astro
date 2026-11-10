@@ -23,6 +23,54 @@
       />
     </svg>
   </button>
+  <button
+    type="button"
+    data-icon-button
+    data-lightbox-nav="prev"
+    aria-label="Previous image"
+    hidden
+  >
+    <svg
+      xmlns="http://www.w3.org/2000/svg"
+      width="1.5em"
+      height="1.5em"
+      viewBox="0 0 24 24"
+      fill="none"
+      aria-hidden="true"
+    >
+      <path
+        d="M15 5l-7 7 7 7"
+        stroke="currentColor"
+        stroke-width="2"
+        stroke-linecap="round"
+        stroke-linejoin="round"
+      />
+    </svg>
+  </button>
+  <button
+    type="button"
+    data-icon-button
+    data-lightbox-nav="next"
+    aria-label="Next image"
+    hidden
+  >
+    <svg
+      xmlns="http://www.w3.org/2000/svg"
+      width="1.5em"
+      height="1.5em"
+      viewBox="0 0 24 24"
+      fill="none"
+      aria-hidden="true"
+    >
+      <path
+        d="M9 5l7 7-7 7"
+        stroke="currentColor"
+        stroke-width="2"
+        stroke-linecap="round"
+        stroke-linejoin="round"
+      />
+    </svg>
+  </button>
 </dialog>
 
 <style is:global>
@@ -36,6 +84,7 @@
   }
 
   #lightbox {
+    touch-action: pan-y pinch-zoom;
     /* reset.css zeroes margins; a modal dialog needs auto to centre */
     margin: auto;
     padding: 0;
@@ -68,6 +117,7 @@
     object-fit: contain;
     border-radius: var(--radius-md);
     cursor: zoom-out;
+    touch-action: pan-y pinch-zoom;
   }
 
   #lightbox figcaption {
@@ -90,6 +140,34 @@
 
   #lightbox [data-lightbox-close]:hover {
     background-color: rgb(11 16 38 / 0.85);
+  }
+
+  #lightbox [data-lightbox-nav] {
+    position: fixed;
+    inset-block-start: 50%;
+    transform: translateY(-50%);
+    inline-size: 2.75rem;
+    block-size: 2.75rem;
+    min-inline-size: 2.75rem;
+    min-block-size: 2.75rem;
+    color: #e2e8f0;
+    background-color: rgb(11 16 38 / 0.6);
+  }
+
+  #lightbox [data-lightbox-nav]:hover {
+    background-color: rgb(11 16 38 / 0.85);
+  }
+
+  #lightbox [data-lightbox-nav][hidden] {
+    display: none;
+  }
+
+  #lightbox [data-lightbox-nav="prev"] {
+    inset-inline-start: var(--space-s);
+  }
+
+  #lightbox [data-lightbox-nav="next"] {
+    inset-inline-end: var(--space-s);
   }
 
   html:has(#lightbox[open]) {
@@ -115,13 +193,17 @@
   const caption = dialog?.querySelector("[data-lightbox-caption]")
   const counter = dialog?.querySelector("[data-lightbox-count]")
   const closeButton = dialog?.querySelector("[data-lightbox-close]")
+  const prevButton = dialog?.querySelector('[data-lightbox-nav="prev"]')
+  const nextButton = dialog?.querySelector('[data-lightbox-nav="next"]')
 
   if (
     dialog instanceof HTMLDialogElement &&
     image &&
     caption &&
     counter &&
-    closeButton
+    closeButton &&
+    prevButton instanceof HTMLButtonElement &&
+    nextButton instanceof HTMLButtonElement
   ) {
     const selector = "prose-content img"
 
@@ -155,6 +237,8 @@
       caption.toggleAttribute("hidden", !img.alt)
       counter.textContent = `${index + 1} / ${group.length}`
       counter.toggleAttribute("hidden", group.length < 2)
+      prevButton.toggleAttribute("hidden", group.length < 2)
+      nextButton.toggleAttribute("hidden", group.length < 2)
     }
 
     const open = (img: HTMLImageElement) => {
@@ -193,7 +277,48 @@
       }
     })
 
+    prevButton.addEventListener("click", () => step(-1))
+    nextButton.addEventListener("click", () => step(1))
+
+    // Touch swipe: left = next, right = previous
+    const SWIPE_MIN = 50
+    let startX = 0
+    let startY = 0
+    let tracking = false
+    let swiped = false
+    let swipeTimer = 0
+
+    dialog.addEventListener("pointerdown", (event) => {
+      swiped = false
+      tracking = event.pointerType === "touch" && event.isPrimary
+      startX = event.clientX
+      startY = event.clientY
+    })
+
+    dialog.addEventListener("pointercancel", () => {
+      tracking = false
+    })
+
+    dialog.addEventListener("pointerup", (event) => {
+      if (!tracking) return
+      tracking = false
+      const dx = event.clientX - startX
+      const dy = event.clientY - startY
+      if (Math.abs(dx) < SWIPE_MIN || Math.abs(dx) <= Math.abs(dy)) return
+      step(dx < 0 ? 1 : -1)
+      // The click that follows this pointerup must not close the dialog
+      swiped = true
+      clearTimeout(swipeTimer)
+      swipeTimer = window.setTimeout(() => {
+        swiped = false
+      }, 400)
+    })
+
     dialog.addEventListener("click", (event) => {
+      if (swiped) {
+        swiped = false
+        return
+      }
       if (event.target === dialog || event.target === image) dialog.close()
     })
 
