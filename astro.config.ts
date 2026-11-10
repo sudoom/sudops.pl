@@ -8,6 +8,7 @@ import {
 import { temmlMath } from "./src/lib/math"
 import { calloutDirective } from "./src/lib/callout"
 import { externalLinks } from "./src/lib/external-links"
+import { tableNowrap } from "./src/lib/table-nowrap"
 import { headingNamespace } from "./src/lib/heading-namespace"
 import { headingAnchors } from "./src/lib/heading-anchors"
 
@@ -32,6 +33,7 @@ export default defineConfig({
       mdastPlugins: [calloutDirective, inlineExpressiveCode, temmlMath],
       hastPlugins: [
         externalLinks,
+        tableNowrap,
         blockExpressiveCode,
         headingNamespace,
         headingAnchors,

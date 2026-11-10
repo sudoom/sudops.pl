@@ -34,6 +34,11 @@ prose-content {
       max-width: 22rem;
     }
 
+    /* set by src/lib/table-nowrap.ts on short cells */
+    [data-nowrap] {
+      white-space: nowrap;
+    }
+
     th {
       padding: 0.5em 1em;
       font-weight: var(--font-weight-medium);
