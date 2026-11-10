@@ -52,6 +52,17 @@ const minutes = readingTime([post, ...parts])
       <reading-time>{minutes} min read</reading-time>
     </entry-meta>
     <p>{post.data.description}</p>
+    {parts.length > 0 && (
+      <entry-series>
+        <ol>
+          {parts.map((part) => (
+            <li>
+              <a href={`/blog/${part.id}`}>{part.data.title}</a>
+            </li>
+          ))}
+        </ol>
+      </entry-series>
+    )}
   </entry-info>
 </li>
 
@@ -125,6 +136,49 @@ const minutes = readingTime([post, ...parts])
 
       p {
         color: var(--muted-foreground);
+      }
+
+      /* nested inside the card's own rules, so these win over the
+         `li` and `li > a` rules above, which also match the part items */
+      entry-series {
+        display: block;
+        margin-block-start: var(--space-2xs);
+        font-size: var(--step--1);
+        color: var(--muted-foreground);
+
+        ol {
+          display: flex;
+          flex-wrap: wrap;
+          gap: var(--space-3xs) var(--space-2xs);
+          margin: 0;
+          padding: 0;
+          list-style: none;
+        }
+
+        li {
+          display: block;
+          list-style: none;
+
+          &:not(:last-child)::after {
+            content: "·";
+            margin-inline-start: var(--space-3xs);
+            color: var(--muted-foreground);
+          }
+
+          > a {
+            display: inline;
+            inline-size: auto;
+            max-inline-size: none;
+            color: var(--muted-foreground);
+            text-decoration-line: none;
+
+            &:hover {
+              color: var(--foreground);
+              text-decoration-line: underline;
+              text-decoration-color: currentColor;
+            }
+          }
+        }
       }
     }
 
