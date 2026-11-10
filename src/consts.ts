@@ -7,7 +7,7 @@ import RSS from "@/assets/icons/rss.svg"
 export const SITE = {
   title: "sudops.pl",
   description:
-    "personal technical portfolio and blog of Vadzim Dziadziulia (Sudoom).",
+    "Personal technical portfolio and blog of Vadzim Dziadziulia (Sudoom).",
   locale: "en-US",
   dir: "ltr",
   defaultPageImage: "/og/site.png",
