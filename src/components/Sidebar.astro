@@ -137,6 +137,11 @@ const section = NAVIGATION.find(
       &[aria-current="page"] {
         color: var(--foreground);
       }
+
+      @media (pointer: coarse) {
+        min-block-size: 2.75rem;
+        padding-block: 0.625rem;
+      }
     }
 
     li[data-depth="1"] a {

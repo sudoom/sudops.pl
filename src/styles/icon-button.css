@@ -11,6 +11,11 @@
     background-color: color-mix(in oklab, var(--muted) 50%, transparent);
   }
 
+  @media (pointer: coarse) {
+    width: 2.75rem;
+    height: 2.75rem;
+  }
+
   svg {
     width: 1rem;
     height: 1rem;
