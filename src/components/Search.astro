@@ -166,6 +166,12 @@ import SearchIcon from "@/assets/icons/search.svg"
   }
 </style>
 
+<!-- Not bundled on purpose: Vite wraps a dynamic import() in its preload
+     helper, which is left unresolved when the script is inlined into the page. -->
+<script is:inline>
+  window.loadSearchIndex = () => import("/pagefind/pagefind.js")
+</script>
+
 <script>
   type Sub = { title: string; url: string; excerpt: string }
   type Data = {
@@ -178,6 +184,11 @@ import SearchIcon from "@/assets/icons/search.svg"
   type Pagefind = {
     init: () => Promise<void>
     debouncedSearch: (q: string) => Promise<{ results: Hit[] } | null>
+  }
+  declare global {
+    interface Window {
+      loadSearchIndex: () => Promise<Pagefind>
+    }
   }
 
   const PAGE = 8
@@ -195,8 +206,7 @@ import SearchIcon from "@/assets/icons/search.svg"
 
     const load = () => {
       engine ??= (async () => {
-        const url = "/pagefind/pagefind.js"
-        const mod: Pagefind = await import(/* @vite-ignore */ url)
+        const mod: Pagefind = await window.loadSearchIndex()
         await mod.init()
         return mod
       })()
