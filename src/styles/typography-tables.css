@@ -28,26 +28,27 @@ prose-content {
       }
     }
 
-    /* sudops: no per-cell min-width, so short columns (Qty, Price) stay
-       narrow and the text columns get the room */
+    /* sudops: no per-cell min-width and tighter side padding (0.6em, was
+       1em), so short columns (Qty, Price) stay narrow, the text columns get
+       the room and a six-column table fits without scrolling */
     :is(th, td) {
       max-width: 22rem;
     }
 
-    /* set by src/lib/table-nowrap.ts on short cells */
+    /* set by src/lib/table-nowrap.ts on numbers and short headings */
     [data-nowrap] {
       white-space: nowrap;
     }
 
     th {
-      padding: 0.5em 1em;
+      padding: 0.5em 0.6em;
       font-weight: var(--font-weight-medium);
       color: var(--foreground);
       text-align: start;
     }
 
     td {
-      padding: 0.5em 1em;
+      padding: 0.5em 0.6em;
       color: var(--prose-foreground);
       text-align: start;
       vertical-align: top;
