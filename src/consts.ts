@@ -10,8 +10,8 @@ export const SITE = {
     "personal technical portfolio and blog of Vadzim Dziadziulia (Sudoom).",
   locale: "en-US",
   dir: "ltr",
-  defaultPageImage: "/static/1200x630.png",
-  defaultPostImage: "/static/1200x630.png",
+  defaultPageImage: "/og/site.png",
+  defaultPostImage: "/og/site.png",
 } as const
 
 export const NAVIGATION = [
