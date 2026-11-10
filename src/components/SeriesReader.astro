@@ -2,14 +2,41 @@
   ;(() => {
     const type = performance.getEntriesByType("navigation")[0]?.type
     if (type && type !== "navigate") return
-    if (location.hash) return
-    let pathname = location.pathname.replace(/\/+$/, "")
+    // sudops: also handle a heading hash here. The module script below
+    // rewrites the URL as soon as it runs, which is before the browser's own
+    // jump to the hash, so the jump never happened.
+    let target
     try {
-      pathname = decodeURIComponent(pathname)
+      if (location.hash) {
+        target = document.getElementById(
+          decodeURIComponent(location.hash.slice(1)),
+        )
+      } else {
+        const pathname = decodeURIComponent(
+          location.pathname.replace(/\/+$/, ""),
+        )
+        target = document.querySelector(
+          `article[data-embedded][data-url="${pathname}"]`,
+        )
+      }
     } catch {}
-    document
-      .querySelector(`article[data-embedded][data-url="${pathname}"]`)
-      ?.scrollIntoView({ behavior: "instant" })
+    if (!target) return
+    // Code blocks above the target use content-visibility with an estimated
+    // height, so the first jump can land short. Jump again once layout has
+    // settled, unless the reader has already started scrolling.
+    let moved = false
+    const stop = () => {
+      moved = true
+    }
+    const inputs = ["wheel", "touchstart", "keydown", "mousedown"]
+    for (const name of inputs)
+      addEventListener(name, stop, { once: true, passive: true })
+    const jump = () => {
+      if (!moved) target.scrollIntoView({ behavior: "instant" })
+    }
+    jump()
+    requestAnimationFrame(() => requestAnimationFrame(jump))
+    addEventListener("load", () => setTimeout(jump, 50), { once: true })
   })()
 </script>
 
