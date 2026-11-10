@@ -1,17 +1,39 @@
 ---
 import SearchIcon from "@/assets/icons/search.svg"
+
+type Props = { trigger?: "icon" | "field" }
+
+const { trigger = "icon" } = Astro.props
 ---
 
-<button
-  id="search-open"
-  data-icon-button
-  aria-label="Search"
-  aria-keyshortcuts="/"
-  aria-haspopup="dialog"
->
-  <SearchIcon />
-</button>
+{trigger === "field" ? (
+    <button
+      type="button"
+      data-search-open
+      data-search-field
+      aria-keyshortcuts="/"
+      aria-haspopup="dialog"
+    >
+      <SearchIcon />
+      <span>Search</span>
+      <kbd>/</kbd>
+    </button>
+  ) : (
+    <button
+      type="button"
+      data-search-open
+      data-search-icon
+      data-icon-button
+      title="Search (/)"
+      aria-label="Search"
+      aria-keyshortcuts="/"
+      aria-haspopup="dialog"
+    >
+      <SearchIcon />
+    </button>
+  )}
 
+{trigger === "icon" && (
 <dialog data-search aria-label="Search posts">
   <search-panel>
     <input
@@ -24,10 +46,85 @@ import SearchIcon from "@/assets/icons/search.svg"
     >
     <search-status role="status" aria-live="polite"></search-status>
     <search-results></search-results>
+    <search-hints>
+      <span><kbd>↑</kbd><kbd>↓</kbd> to move</span>
+      <span><kbd>Enter</kbd> to open</span>
+      <span><kbd>Esc</kbd> to close</span>
+    </search-hints>
   </search-panel>
 </dialog>
+)}
 
 <style>
+  [data-search-field] {
+    display: none;
+    align-items: center;
+    gap: var(--space-2xs);
+    inline-size: 100%;
+    max-inline-size: 12rem;
+    margin-block-start: var(--space-xs);
+    padding: var(--space-3xs) var(--space-2xs);
+    font: inherit;
+    font-size: var(--step--1);
+    color: var(--muted-foreground);
+    background: transparent;
+    border: 1px solid var(--border);
+    border-radius: var(--radius-md);
+    cursor: pointer;
+
+    @media (width >= 64rem) {
+      display: flex;
+    }
+
+    &:hover {
+      color: var(--foreground);
+    }
+
+    svg {
+      inline-size: 1em;
+      block-size: 1em;
+      flex-shrink: 0;
+    }
+
+    span {
+      flex: 1;
+      text-align: start;
+    }
+  }
+
+  [data-search-icon] {
+    @media (width >= 64rem) {
+      display: none;
+    }
+  }
+
+  kbd {
+    padding: 0 var(--space-3xs);
+    font-family: var(--font-mono);
+    font-size: var(--step--1);
+    line-height: 1.4;
+    border: 1px solid var(--border);
+    border-radius: var(--radius-sm);
+  }
+
+  search-hints {
+    display: flex;
+    flex-wrap: wrap;
+    gap: var(--space-2xs) var(--space-s);
+    padding: var(--space-2xs) var(--space-s);
+    color: var(--muted-foreground);
+    font-size: var(--step--1);
+    border-block-start: 1px solid var(--border);
+
+    @media (hover: none) {
+      display: none;
+    }
+
+    kbd {
+      margin-inline-end: var(--space-3xs);
+    }
+  }
+
   dialog {
     inline-size: min(40rem, 92vw);
     max-inline-size: none;
@@ -195,12 +292,13 @@ import SearchIcon from "@/assets/icons/search.svg"
   const dialog = document.querySelector<HTMLDialogElement>(
     "dialog[data-search]",
   )
-  const openButton = document.getElementById("search-open")
+  const openButtons =
+    document.querySelectorAll<HTMLElement>("[data-search-open]")
   const input = dialog?.querySelector<HTMLInputElement>("input")
   const status = dialog?.querySelector<HTMLElement>("search-status")
   const list = dialog?.querySelector<HTMLElement>("search-results")
 
-  if (dialog && openButton && input && status && list) {
+  if (dialog && openButtons.length > 0 && input && status && list) {
     let engine: Promise<Pagefind> | undefined
     let token = 0
 
@@ -304,7 +402,7 @@ import SearchIcon from "@/assets/icons/search.svg"
       void load().catch(() => {})
     }
 
-    openButton.addEventListener("click", open)
+    for (const button of openButtons) button.addEventListener("click", open)
     input.addEventListener("input", () => void run(input.value))
 
     dialog.addEventListener("click", (event) => {
