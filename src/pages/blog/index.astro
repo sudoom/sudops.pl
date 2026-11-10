@@ -5,16 +5,33 @@ import Layout from "@/layouts/Layout.astro"
 import { getPosts } from "@/lib/content"
 
 const posts = await getPosts()
+const first = posts.at(-1)
 ---
 
 <Layout>
   <MetaPage slot="head" title="Blog" />
+  {first && (
+      <p data-start>
+        New here? Start with <a href={`/blog/${first.id}`}>{first.data.title}</a>{"."}
+      </p>
+    )}
   <ul>
     {posts.map((post) => <BlogCard post={post} />)}
   </ul>
 </Layout>
 
 <style>
+  [data-start] {
+    margin-block-end: var(--space-m);
+    font-size: var(--step--1);
+    color: var(--muted-foreground);
+
+    a {
+      color: var(--foreground);
+      text-decoration: underline;
+    }
+  }
+
   ul {
     display: flex;
     flex-direction: column;
