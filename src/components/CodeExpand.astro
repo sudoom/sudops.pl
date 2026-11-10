@@ -33,10 +33,12 @@
     inset-block-end: 100%;
     block-size: 4rem;
     pointer-events: none;
+    /* --ec-codeBg is translucent (25% --muted over the page), so fade to
+       the same colour made solid or the last line stays fully readable */
     background: linear-gradient(
       to bottom,
       transparent,
-      var(--ec-codeBg, var(--background))
+      color-mix(in oklab, var(--muted) 25%, var(--background))
     );
   }
 </style>
