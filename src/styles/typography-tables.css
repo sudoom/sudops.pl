@@ -28,8 +28,9 @@ prose-content {
       }
     }
 
+    /* sudops: no per-cell min-width, so short columns (Qty, Price) stay
+       narrow and the text columns get the room */
     :is(th, td) {
-      min-width: 10rem;
       max-width: 22rem;
     }
 
