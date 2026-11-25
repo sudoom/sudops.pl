@@ -118,7 +118,7 @@ The blog is a homelab series. More series (Storage, Network & DNS, Keeping OKD c
 - `homelab-network-impl/` — Parent + subposts: `phase0.md`, post-SNO *(future)*
 - `homelab-validation/` — Parent + subposts: `hardware.md`, `sno.md`
 - `homelab-day1/` — Standalone post (OKD 3-node cluster installation)
-- `homelab-day2/` — Parent + subposts: `bootstrap.md`, `cert-manager.md`, `storage-network.md`, rook-ceph *(future)*
+- `homelab-day2/` — Parent + subposts: `bootstrap.md`, `cert-manager.md`, `storage-network.md`, `rook-ceph.md`
 
 When converting raw drafts to Markdown:
 - Strip social media drafts (LinkedIn/Slack/Reddit) from the end. Every new post gets them, though, in its gitignored `posts/` file (e.g. `posts/post-11c-storage-network.md`) under `---`:

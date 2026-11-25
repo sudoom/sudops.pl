@@ -191,4 +191,4 @@ nmstate-nncp:
 
 Operator in wave 1, NNCPs in wave 2 (depends on the operator being ready). One `git push`, ArgoCD syncs both, all three nodes get their storage IPs.
 
-Next: Rook-Ceph — NVMe fast pool on the storage network. *(coming soon)*
+Next: [Rook-Ceph](/blog/homelab-day2/rook-ceph) — NVMe fast pool on the storage network.

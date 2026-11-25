@@ -1,6 +1,6 @@
 ---
 title: 'Day 2: Platform Bootstrap'
-description: 'GitOps foundation, operator catalogs, TLS certificates, and storage networking — everything that turns a fresh OKD cluster into a managed platform.'
+description: 'GitOps foundation, operator catalogs, TLS certificates, storage networking, and Rook-Ceph — everything that turns a fresh OKD cluster into a managed platform.'
 date: 2026-06-24
 tags: ['homelab', 'okd', 'kubernetes', 'gitops', 'argocd', 'bare-metal']
 authors: ['vd']
@@ -21,7 +21,7 @@ Day 2 breaks into four stages, each building on the last:
 1. **[Bootstrap](/blog/homelab-day2/bootstrap)** — OKDerators catalog, GitOps operator, ArgoCD instance, Git repo structure with App-of-Apps pattern. The foundation everything else depends on.
 2. **[cert-manager](/blog/homelab-day2/cert-manager)** — TLS certificates via Cloudflare DNS-01. Browser-trusted wildcard for `*.apps.okd.sudops.pl`. No more self-signed warnings.
 3. **[Storage Network](/blog/homelab-day2/storage-network)** — NMState operator, per-node NNCPs for the 10GbE Mellanox ports on VLAN 10. The dedicated Ceph replication path.
-4. **Rook-Ceph** — NVMe fast pool with replica-3, StorageClasses, dashboard. *(coming soon)*
+4. **[Rook-Ceph](/blog/homelab-day2/rook-ceph)** — NVMe fast pool with replica-3, StorageClasses, dashboard.
 :::
 
 Start with the bootstrap — everything else is managed by what I deploy there.
