@@ -1,54 +1,151 @@
 ---
-import BlogCard from '@/components/BlogCard.astro'
-import Link from '@/components/Link.astro'
-import PageHead from '@/components/PageHead.astro'
-import { buttonVariants } from '@/components/ui/button'
-import { SITE } from '@/consts'
-import Layout from '@/layouts/Layout.astro'
-import { getRecentPosts } from '@/lib/data-utils'
-import TechStack from '@/components/TechStack.astro'
+import Azure from "@/assets/icons/tech/azure.svg"
+import GoogleCloud from "@/assets/icons/tech/google-cloud.svg"
+import Kubernetes from "@/assets/icons/tech/kubernetes.svg"
+import OpenShift from "@/assets/icons/tech/openshift.svg"
+import Terraform from "@/assets/icons/tech/terraform.svg"
+import BlogCard from "@/components/BlogCard.astro"
+import MetaPage from "@/components/MetaPage.astro"
+import SeriesIndex from "@/components/SeriesIndex.astro"
+import Layout from "@/layouts/Layout.astro"
+import { getPosts } from "@/lib/content"
 
-const blog = await getRecentPosts(SITE.featuredPostCount)
+const STACK = [
+  { name: "Kubernetes", icon: Kubernetes },
+  { name: "OpenShift", icon: OpenShift },
+  { name: "Google Anthos", icon: GoogleCloud },
+  { name: "Terraform", icon: Terraform },
+  { name: "Azure", icon: Azure },
+]
+
+const allPosts = await getPosts()
+const latest = allPosts.slice(0, 2)
 ---
 
-<Layout class="max-w-3xl">
-  <PageHead slot="head" title="Home" />
-  
-  <section class="flex flex-col space-y-4 mb-12">
-    <div class="space-y-2">
-       <h1 class="text-3xl font-bold tracking-tight">Vadzim Dziadziulia</h1>
-       <p class="text-xl text-muted-foreground">Navigator of Kubernetes Seas</p>
-    </div>
-    <p class="max-w-prose text-muted-foreground leading-relaxed">
-      Charting courses through bare-metal clusters, <strong>Kubernetes infrastructure</strong>, and everything beneath the waterline.
+<Layout>
+  <MetaPage slot="head" />
+  <home-intro>
+    <h1>Vadzim Dziadziulia</h1>
+    <p data-tagline>Navigator of Kubernetes Seas</p>
+    <p>
+      Charting courses through bare-metal clusters,
+      <strong>Kubernetes infrastructure</strong>, and everything beneath the
+      waterline.
     </p>
+  </home-intro>
+
+  <section>
+    <h2>Tech Stack</h2>
+    <ul data-stack>
+      {STACK.map(({ name, icon: Icon }) => (
+          <li>
+            <Icon aria-hidden="true" />
+            <span>{name}</span>
+          </li>
+        ))}
+    </ul>
   </section>
-  
-  <div class="flex flex-col gap-16">
-      <TechStack />
-     
-      <section class="flex flex-col gap-y-4">
-        <h2 class="text-xl font-medium">Latest Posts</h2>
-        <ul class="flex flex-col gap-y-4">
-          {
-            blog.map((post) => (
-              <li>
-                <BlogCard entry={post} />
-              </li>
-            ))
-          }
-        </ul>
-        <div class="flex justify-center">
-          <Link
-            href="/blog"
-            class={buttonVariants({ variant: 'ghost' }) + ' group'}
-          >
-            See all posts <span
-              class="ml-1.5 transition-transform group-hover:translate-x-1"
-              >&rarr;</span
-            >
-          </Link>
-        </div>
-      </section>
-  </div>
+
+  <series-inline>
+    <SeriesIndex />
+  </series-inline>
+
+  <section>
+    <h2>Latest Posts</h2>
+    <ul data-posts>
+      {latest.map((post) => <BlogCard post={post} />)}
+    </ul>
+    <a href="/blog" data-more>See all posts &rarr;</a>
+  </section>
+
+  <SeriesIndex slot="rail" compact />
 </Layout>
+
+<style>
+  home-intro {
+    display: block;
+    margin-block-end: var(--space-xl);
+
+    @media (width >= 64rem) {
+      margin-block-start: -0.2em;
+    }
+
+    h1 {
+      font-size: var(--step-2);
+      line-height: calc(var(--leading-offset) + 1em);
+      font-weight: var(--font-weight-medium);
+      color: var(--foreground);
+    }
+
+    [data-tagline] {
+      margin-block-start: var(--space-3xs);
+      font-size: var(--step-1);
+      color: var(--muted-foreground);
+    }
+
+    p:last-child {
+      margin-block-start: var(--space-xs);
+      max-inline-size: var(--measure);
+      font-size: var(--step-0);
+      color: var(--muted-foreground);
+    }
+  }
+
+  section + section,
+  section + series-inline,
+  series-inline + section {
+    margin-block-start: var(--space-xl);
+  }
+
+  series-inline {
+    display: block;
+
+    @media (width >= 64rem) {
+      display: none;
+    }
+  }
+
+  h2 {
+    margin-block-end: var(--space-s);
+    font-size: var(--step-1);
+    font-weight: var(--font-weight-medium);
+    color: var(--foreground);
+  }
+
+  [data-stack] {
+    display: flex;
+    flex-wrap: wrap;
+    gap: var(--space-xs) var(--space-m);
+
+    li {
+      display: inline-flex;
+      align-items: center;
+      gap: var(--space-2xs);
+      font-size: var(--step--1);
+      color: var(--foreground);
+
+      svg {
+        inline-size: 1.25rem;
+        block-size: 1.25rem;
+        flex-shrink: 0;
+      }
+    }
+  }
+
+  [data-posts] {
+    display: flex;
+    flex-direction: column;
+    gap: var(--space-m);
+  }
+
+  [data-more] {
+    display: inline-block;
+    margin-block-start: var(--space-m);
+    font-size: var(--step--1);
+    color: var(--muted-foreground);
+
+    &:hover {
+      color: var(--foreground);
+    }
+  }
+</style>

@@ -1,0 +1,27 @@
+---
+title: 'Day 2: Platform Bootstrap'
+description: 'GitOps foundation, operator catalogs, TLS certificates, and storage networking — everything that turns a fresh OKD cluster into a managed platform.'
+date: 2026-06-24
+tags: ['homelab', 'okd', 'kubernetes', 'gitops', 'argocd', 'bare-metal']
+authors: ['vd']
+---
+
+
+The [cluster is installed](/blog/homelab-day1). Three nodes, 34 operators green, etcd healthy. A working cluster with nothing on it.
+
+Day 2 is where a cluster becomes a platform. The principle from the [design series](/blog/homelab-design) still applies: you cannot implement without proper design, and you cannot operate without proper tooling. Before deploying any workloads — before storage, before networking changes, before anything — the management layer goes in first.
+
+:::important[Why GitOps first]
+Every operator, every CRD, every network config applied manually is a cleanup waiting to happen. I learned this the hard way — experimenting with ODF and the community ArgoCD operator before establishing GitOps left 60+ orphaned CRDs and stuck namespaces that took longer to clean up than to install. If the first thing you deploy isn't the deployment tool, you're building debt from day one.
+:::
+
+Day 2 breaks into four stages, each building on the last:
+
+:::note[Day 2 stages]
+1. **[Bootstrap](/blog/homelab-day2/bootstrap)** — OKDerators catalog, GitOps operator, ArgoCD instance, Git repo structure with App-of-Apps pattern. The foundation everything else depends on.
+2. **[cert-manager](/blog/homelab-day2/cert-manager)** — TLS certificates via Cloudflare DNS-01. Browser-trusted wildcard for `*.apps.okd.sudops.pl`. No more self-signed warnings.
+3. **[Storage Network](/blog/homelab-day2/storage-network)** — NMState operator, per-node NNCPs for the 10GbE Mellanox ports on VLAN 10. The dedicated Ceph replication path.
+4. **Rook-Ceph** — NVMe fast pool with replica-3, StorageClasses, dashboard. *(coming soon)*
+:::
+
+Start with the bootstrap — everything else is managed by what I deploy there.
