@@ -14,10 +14,7 @@ Personal blog and portfolio site (sudops.pl) built on the **astro-erudite v2** t
 
 The site is hosted on **Cloudflare Pages**, connected directly to this repo. Every commit pushed to `main` triggers an automatic build and deploy. Results are live at **https://sudops.pl**. Every other pushed branch gets a preview at `https://<branch-name>.sudops-pl.pages.dev/`.
 
-To build, commit, and deploy in one shot:
-```
-npm run build && git add <changed files> && git commit -m "your message" && git push origin main
-```
+Posts and features go through a branch and its preview, not straight to `main` (see "Publishing a post"). Commits are signed with the owner's YubiKey, so the owner runs `git commit`; a session stages and hands over the command.
 
 Stage the files you changed by path — never `git add .` or `git add -A`. The working tree can hold untracked local files (e.g. a Hugo `themes/` checkout) that must not be committed.
 
@@ -48,7 +45,23 @@ Before committing the merge:
 - **`bun.lock`:** upstream ships bun's lockfile; this repo uses npm. Resolve its conflict with `git rm bun.lock`.
 - **Lockfile:** run `npm install` and commit the updated `package-lock.json`. Cloudflare installs with `npm ci`, which fails when `package.json` and the lockfile disagree.
 - **New demo content:** run `git diff --cached --name-status HEAD -- src/content`. Anything upstream added there is demo content — move it to `test-content/` (keeps the reference current) or delete it; otherwise it goes live on sudops.pl.
-- **Conflicts in files we customized:** keep our version and re-apply the upstream change by hand if it matters. These upstream files carry sudops edits: `src/consts.ts`, `astro.config.ts`, `src/lib/expressive-code/config.ts`, `src/pages/index.astro`, `src/components/Footer.astro`, `src/components/BlogCard.astro` (reading time, part count and links to each part, no tags), `src/pages/blog/[...id].astro` (reading time, tag colour, `<Lightbox />`, `<CodeExpand />`, `<PostNav />`, `data-pagefind-*` attributes), `src/pages/blog/index.astro` ("New here? Start with…" line, "Topics" in the right rail), `src/layouts/Layout.astro` (`rail` slot: a desktop-only right column for pages without a table of contents), `src/styles/typography-block.css` (no max height or inner scroll on code blocks), `src/styles/icon-button.css` (44px on touch devices), `src/components/Sidebar.astro` (two `<Search />` triggers, taller nav links on touch devices), `src/components/SeriesReader.astro` (initial jump also handles a heading hash and repeats after layout settles), `src/components/MetaPost.astro` (generated share image as fallback), `package.json` (`build` script, extra dependencies), `src/styles/typography-inline.css` (teal link underline), `src/styles/typography-tables.css` (no per-cell `min-width`, 0.6em side padding, numeric cells don't wrap), `src/styles/color.css` (palette tokens), `src/components/MetaHead.astro` (`theme-color`), `src/assets/logo.svg`, the `public/` favicons and `site.webmanifest`, `.gitignore`.
+- **Conflicts in files we customized:** keep our version and re-apply the upstream change by hand if it matters. These upstream files carry sudops edits:
+  - `src/consts.ts`, `astro.config.ts`, `src/lib/expressive-code/config.ts`, `src/pages/index.astro`, `src/components/Footer.astro`
+  - `src/components/BlogCard.astro` — reading time, part count and links to each part, no tags
+  - `src/pages/blog/[...id].astro` — reading time, tag colour, `<Lightbox />`, `<CodeExpand />`, `<PostNav />`, `data-pagefind-*` attributes
+  - `src/pages/blog/index.astro` — "New here? Start with…" line, "Topics" in the right rail
+  - `src/layouts/Layout.astro` — `rail` slot: a desktop-only right column for pages without a table of contents
+  - `src/components/Sidebar.astro` — two `<Search />` triggers, taller nav links on touch devices
+  - `src/components/SeriesReader.astro` — initial jump also handles a heading hash and repeats after layout settles
+  - `src/components/MetaPost.astro` — generated share image as fallback
+  - `src/components/MetaHead.astro` — `theme-color`
+  - `src/styles/typography-block.css` — no max height or inner scroll on code blocks
+  - `src/styles/typography-tables.css` — no per-cell `min-width`, 0.6em side padding, numeric cells don't wrap
+  - `src/styles/typography-inline.css` — teal link underline
+  - `src/styles/icon-button.css` — 44px on touch devices
+  - `src/styles/color.css` — palette tokens
+  - `package.json` — `build` script, extra dependencies
+  - `src/assets/logo.svg`, the `public/` favicons and `site.webmanifest`, `.gitignore`
 - Run `npm run build` before opening the PR.
 
 Merge PRs that bring in upstream history with **"Create a merge commit"**, never squash. Squashing drops the upstream parent, and the next sync then conflicts everywhere. Keep upstream files (components, layouts, `src/lib`, `src/styles`) as close to upstream as possible; site-specific code lives in the files listed under "Site-specific files".
@@ -97,7 +110,7 @@ Content schemas are defined in `src/content.config.ts`.
 
 ### Blog Structure
 
-The blog is a homelab series. Posts use a parent/subpost pattern where topics with multiple parts get a parent `index.md` (overview + callout listing subposts) and individual subpost `.md` files with `order` frontmatter:
+The blog is a homelab series. More series (Storage, Network & DNS, Keeping OKD current, …) are planned in `posts/ROADMAP.md`; add each one here when it is published. Posts use a parent/subpost pattern where topics with multiple parts get a parent `index.md` (overview + callout listing subposts) and individual subpost `.md` files with `order` frontmatter:
 
 - `homelab-why/` — Standalone post (why this project)
 - `homelab-design/` — Parent + subposts: `compute.md`, `network.md`, `storage.md`
@@ -112,7 +125,9 @@ When converting raw drafts to Markdown:
 - Callouts are directives: `:::note[Title]` … `:::` (title optional; `:::note{closed}` starts collapsed). Variants: `note`, `tip`, `warning`, `caution`, `important`. They render as "Note (Title)".
 - Interactive pieces are custom elements with an inline `<script>` in the `.md` (see `<bom-chart>` in `homelab-bom/post-sno.md`). Always guard with `if (!customElements.get("name"))` — `define` throws if the name is already registered (e.g. if view transitions are ever enabled).
 - Use ` ```routeros ` for MikroTik/RouterOS config blocks, `bash` for pure shell commands, plain ` ``` ` for terminal output with prompts
-- Images go in the same directory as the post, referenced with `./filename.png`
+- Images go in the same directory as the post, referenced with `./filename.png`. Raw screenshots wait in `posts/screenshots/` (gitignored). Copy the ones you use next to the post as `<post>-<what>.png` (e.g. `day2-ceph-osds.png`). Check each for public IPs, tokens, emails, account IDs and browser bookmark bars first, and crop if needed.
+- Diagrams are drawn by the owner in Excalidraw style (dark background, hand-drawn boxes; see `posts/post04alternatives.png`). While drafting, mark each one with an HTML comment where it belongs: `<!-- DIAGRAM: <post>-<what>.png — what to draw: boxes, arrows, labels -->`. Don't use an image link until the file exists: the build fails on a missing image. A post doesn't merge with a `DIAGRAM:` comment left in it.
+- Config code blocks start with a comment holding the file's real path in the homelab repo (`# components/operators/cert-manager/values.yaml`), checked against `sudoom/homelab`.
 - Use first person ("I"), never "we" — this is a personal blog
 - **Post `date` is the publish date, not the narrative date.** When a draft goes live, set its `date` (and each subpost's) to the day it's published — current date, not when the work happened. Bump stale dates right before merging (see the `chore: update … post date` commits). Subpost sequence is held by the `order` field, so same-day dates across a batch are fine.
 - Keep prose tight and conversational. Avoid textbook-style explanations — assume the reader has context. If something can be said in one sentence, don't use three.
@@ -133,6 +148,22 @@ When converting raw drafts to Markdown:
 ### Raw Blog Post Drafts
 
 Raw/unformatted post drafts are stored in `posts/*.md` (gitignored). These need to be formatted (proper frontmatter, directives, etc.) and moved to `src/content/blog/` before they go live.
+
+### Publishing a post
+
+- **Queue:** `posts/ROADMAP.md` (gitignored) is the publishing plan: series, the order of posts, a Thursday release date for each, source sections in the homelab drafts, redaction notes, and a HOLD pool for posts whose work isn't finished. One post goes out every Thursday. Follow the roadmap and update it when plans change.
+- **Flow:**
+  1. Branch off `origin/main`, one branch per post.
+  2. Draft from the sources and review.
+  3. Push; the owner reads the preview at `https://<branch>.sudops-pl.pages.dev/` and makes the signed commit.
+  4. Merge to `main` on the release Thursday, with `date` set to that day.
+- **A new series:** the parent `index.md` goes live with its first part. The parts not yet out are listed as "*(coming soon)*" without a link.
+- **Each later part of a series:**
+  - Remove `draft: true` and set `date`.
+  - In the parent's part list, replace "*(coming soon)*" with the link.
+  - Link the previous part's closing "Next:" line.
+  - Make sure no live page links to a part that is still a draft.
+  - Update "Blog Structure" above.
 
 ### Reference Content (`test-content/`)
 
@@ -178,7 +209,7 @@ On "call it", "wrap up", "end of session" or similar, run these before saying go
 
 1. **Build.** `npm run build` (runs `astro check`, then builds) must pass. A failure blocks the goodbye.
 2. **Docs drift.** "Blog Structure" above must match `ls src/content/blog/` and each series' subposts, and "Key Files" / "Site-specific files" must still exist. Update this file in the same commit as the change that made it stale.
-3. **Draft pipeline report.** List the homelab drafts that changed recently, and say which have material with no post in `posts/` or `src/content/blog/` yet. Report only — don't write posts unasked.
+3. **Draft pipeline report.** List the homelab drafts that changed recently and which roadmap posts they feed. Say which HOLD conditions in `posts/ROADMAP.md` now hold, and flag drafts that aren't on the roadmap yet. Report only — don't write posts unasked.
    ```
    git -C /Users/vadzimdziadziulia-laptop/Projects/homelab log --since="14 days ago" --name-only --format= -- 'blog/*-draft.md' | sort | uniq -c | sort -rn
    ```
@@ -190,5 +221,6 @@ On "call it", "wrap up", "end of session" or similar, run these before saying go
        | xargs grep -n -i -E 'BEGIN [A-Z ]*PRIVATE KEY|(api[_-]?key|token|password|secret)[[:space:]]*[:=][[:space:]]*[^[:space:]<]{8,}|client-certificate-data|client-key-data'
      ```
      Known false positive: the installer's placeholder `pullSecret: '{"auths":{"fake":…}}'` in `homelab-day1/index.md` and `homelab-validation/sno.md`.
-   - Stale dates: new posts on a branch headed for `main` need today's `date` (see "Blog Structure"). List them with `git diff --name-only --diff-filter=A origin/main...HEAD -- src/content/blog | xargs grep -H -m1 '^date:'`. Until v2 merges, this also lists `homelab-bom`, `homelab-day2` and `homelab-design`: they were `index.mdx` on `main`, so the `.mdx` → `.md` conversion shows as an add. Those are existing posts and keep their dates.
+   - Dates: new posts on a branch headed for `main` need the `date` of their release Thursday. List them with `git diff --name-only --diff-filter=A origin/main...HEAD -- src/content/blog | xargs grep -H -m1 '^date:'`.
+   - Diagram placeholders: `grep -rn 'DIAGRAM:' src/content/blog` must be empty on anything merging to `main`.
    - Push state: `git status -sb | head -1`. Anything unpushed on `main` is not live yet.

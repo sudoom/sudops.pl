@@ -29,3 +29,6 @@ teaser.pptx
 
 # Raw blog drafts (not part of the content system)
 posts/
+
+# Planning docs from Claude Code sessions (specs, plans)
+docs/superpowers/
