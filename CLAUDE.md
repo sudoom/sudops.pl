@@ -16,7 +16,7 @@ The site is hosted on **Cloudflare Pages**, connected directly to this repo. Eve
 
 Posts and features go through a branch and its preview, not straight to `main` (see "Publishing a post"). Commits are signed with the owner's YubiKey, so the owner runs `git commit`; a session stages and hands over the command.
 
-Stage the files you changed by path — never `git add .` or `git add -A`. The working tree can hold untracked local files (e.g. a Hugo `themes/` checkout) that must not be committed.
+Stage the files you changed by path — never `git add .` or `git add -A`.
 
 You can verify the result at https://sudops.pl after the Cloudflare build completes. Cloudflare redirects URLs without a trailing slash (308); use `curl -L` or the `/`-ending URL when checking a page.
 
@@ -121,12 +121,17 @@ The blog is a homelab series. More series (Storage, Network & DNS, Keeping OKD c
 - `homelab-day2/` — Parent + subposts: `bootstrap.md`, `cert-manager.md`, `storage-network.md`, rook-ceph *(future)*
 
 When converting raw drafts to Markdown:
-- Strip social media drafts (LinkedIn/Slack/Reddit) from the end
+- Strip social media drafts (LinkedIn/Slack/Reddit) from the end. Every new post gets them, though, in its gitignored `posts/` file (e.g. `posts/post-11c-storage-network.md`) under `---`:
+  - **LinkedIn post draft:** two or three sentences, then hashtags.
+  - **Slack (OKD community) draft:** the key gotcha, technical.
+  - **Reddit (r/homelab) draft:** first person and casual.
+
+  Each ends with `[LINK]`.
 - Callouts are directives: `:::note[Title]` … `:::` (title optional; `:::note{closed}` starts collapsed). Variants: `note`, `tip`, `warning`, `caution`, `important`. They render as "Note (Title)".
 - Interactive pieces are custom elements with an inline `<script>` in the `.md` (see `<bom-chart>` in `homelab-bom/post-sno.md`). Always guard with `if (!customElements.get("name"))` — `define` throws if the name is already registered (e.g. if view transitions are ever enabled).
 - Use ` ```routeros ` for MikroTik/RouterOS config blocks, `bash` for pure shell commands, plain ` ``` ` for terminal output with prompts
 - Images go in the same directory as the post, referenced with `./filename.png`. Raw screenshots wait in `posts/screenshots/` (gitignored). Copy the ones you use next to the post as `<post>-<what>.png` (e.g. `day2-ceph-osds.png`). Check each for public IPs, tokens, emails, account IDs and browser bookmark bars first, and crop if needed.
-- Diagrams are drawn by the owner in Excalidraw style (dark background, hand-drawn boxes; see `posts/post04alternatives.png`). While drafting, mark each one with an HTML comment where it belongs: `<!-- DIAGRAM: <post>-<what>.png — what to draw: boxes, arrows, labels -->`. Don't use an image link until the file exists: the build fails on a missing image. A post doesn't merge with a `DIAGRAM:` comment left in it.
+- Diagrams are drawn by the owner in Excalidraw style (dark background, hand-drawn boxes; see `posts/post04alternatives.png`). While drafting, mark each one with an HTML comment where it belongs, holding an ASCII sketch the owner redraws: `<!-- DIAGRAM: <post>-<what>.png` on the first line, then the sketch (boxes, arrows, labels, colour notes), then `-->`. Never write `-->` inside the sketch: it ends the comment. Don't use an image link until the file exists: the build fails on a missing image. A post doesn't merge with a `DIAGRAM:` comment left in it.
 - Config code blocks start with a comment holding the file's real path in the homelab repo (`# components/operators/cert-manager/values.yaml`), checked against `sudoom/homelab`.
 - Use first person ("I"), never "we" — this is a personal blog
 - **Post `date` is the publish date, not the narrative date.** When a draft goes live, set its `date` (and each subpost's) to the day it's published — current date, not when the work happened. Bump stale dates right before merging (see the `chore: update … post date` commits). Subpost sequence is held by the `order` field, so same-day dates across a batch are fine.
@@ -214,7 +219,7 @@ On "call it", "wrap up", "end of session" or similar, run these before saying go
    git -C /Users/vadzimdziadziulia-laptop/Projects/homelab log --since="14 days ago" --name-only --format= -- 'blog/*-draft.md' | sort | uniq -c | sort -rn
    ```
 4. **Hygiene.**
-   - `git status --short`: list uncommitted and untracked files. Flag local leftovers (`themes/`, `.hugo_build.lock`, `.gitmodules` from the Hugo era) — never delete or stage them, and never `git add .`.
+   - `git status --short`: list uncommitted and untracked files, and stage only by path, never `git add .`.
    - Secret scan of content changed on the branch or in the working tree:
      ```
      { git diff --name-only --diff-filter=d origin/main...HEAD -- src/content; git diff --name-only --diff-filter=d -- src/content; } | sort -u \
